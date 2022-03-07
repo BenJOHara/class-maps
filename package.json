@@ -10,16 +10,39 @@
 		"Other"
 	],
 	"activationEvents": [
-        "onCommand:class-maps.helloWorld"
+        "onView:class-maps.map-view",
+		"onCommand:class-maps.show-names",
+		"onCommand:class-maps.show-number",
+		"onCommand:class-maps.show-class-info"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
+		"views": {
+			"explorer": [
+				{
+					"type": "webview",
+					"id": "class-maps.map-view",
+					"name": "Class Map"
+				}
+			]
+		},
 		"commands": [
 			{
-				"command": "class-maps.helloWorld",
-				"title": "Hello World"
+				"command": "class-maps.show-names",
+				"category": "Class Map",
+				"title": "Show Names"
+			},
+			{
+				"command": "class-maps.show-class-info",
+				"category": "Class Map",
+				"title": "Show Class Info"
+			},
+			{
+				"command": "class-maps.show-number",
+				"category": "Class Map",
+				"title": "Show Number"
 			}
-		]
+		]		
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run package",
