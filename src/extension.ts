@@ -1,34 +1,7 @@
 import { count } from 'console';
 import * as vscode from 'vscode';
-
-
-
-class ClassType{
-	name:string;
-	size:number;//number of lines of code that make up the class
-	uri:vscode.Uri;
-
-	//inheritence
-	parent:string;
-
-	//a part of the class is this class
-	hasClasses:string[]; 
-	
-	//this class is used in the class
-	usesClasses:string[];
-
-	constructor(_name:string, _size:number, _uri:vscode.Uri, _parent:string, _hasClasses:string[], _usesClasses:string[])
-	{
-		this.name = _name;
-		this.size = _size;
-		this.uri = _uri;
-
-		this.parent = _parent;
-
-		this.hasClasses = _hasClasses;
-		this.usesClasses = _usesClasses;
-	}
-}
+import { ClassType } from './ClassType';
+import { Tokenizer } from './Tokenizer';
 
 export function activate(context: vscode.ExtensionContext) {
 	
@@ -104,21 +77,23 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 			}
 		});
 	}
+
+
 	private async getNumberOfFiles()
 	{
-		const files = await vscode.workspace.findFiles('**/*.java');
+		const files: vscode.Uri[] = await vscode.workspace.findFiles('**/*.java');
 		return files.length;
 	}
 
 	private async getFiles()
 	{
-		const files = await vscode.workspace.findFiles('**/*.java');
+		const files : vscode.Uri[]= await vscode.workspace.findFiles('**/*.java');
 		return files;
 	}
 
 	private async getNames()
 	{
-		const uris = await this.getFiles();
+		const uris : vscode.Uri[] = await this.getFiles();
 		const fileNames : string[] = [];
 		for (const uri of uris)
 		{
@@ -148,7 +123,6 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 				{
 					while (chars[i] !== '\n')
 					{
-						//console.log("comment 1");
 						i++;
 					}
 				}
@@ -157,7 +131,6 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 					while (chars[i] !== '*' && chars[i+1] !== '/')
 					{
 						i++;
-						//console.log("comment 2", chars[i]);
 					}
 					i++; // leaves on the / so next loop over it is changed to the next
 				}
@@ -169,7 +142,6 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 				while (chars[i] !== '"')
 				{
 					s = s + chars[i];
-					//console.log("string 1", chars[i]);
 					i++;
 				}
 				s = s + chars[i];
@@ -182,7 +154,6 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 				while (chars[i] !== '\'')
 				{
 					s = s + chars[i];
-					//console.log("char  1");
 					i++;
 				}
 				s = s + chars[i];
@@ -206,8 +177,6 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 				{
 					s = s+ chars[i];
 					i++;
-					
-					//console.log("id 1");
 				}
 				i--;
 				tokens.push(s);//may need to add here to check if is keyword from above
@@ -219,7 +188,6 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 				while ((/[0-9]/).test(chars[i])){
 					s = s + chars[i];
 					i++;
-					//console.log("number 1");
 				}
 				i--;
 				tokens.push(s);
@@ -234,7 +202,6 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 				if (chars[i] !== ' ' && chars[i] !== '	' && chars[i] !== '\n' && chars[i] !== ';')
 				{
 					s = s + chars[i];
-					//console.log("symbol 1", chars[i]);
 				}
 				if ( s === '')
 				{
@@ -250,6 +217,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 		return tokens;
 	}
 
+
 	private parseClassFile(text:string, uri : vscode.Uri)
 	{
 		//find number of classes
@@ -263,7 +231,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 				const className : string = tokens[i+1];
 				if (tokens.indexOf("class", i + 1) === -1)
 				{
-					
+					length = tokens.length;
 				}
 				else
 				{
@@ -279,7 +247,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 
 				const _uri : vscode.Uri = uri;
 
-				let _class : ClassType = new ClassType(className, length, _uri, parent, hasClasses, usesClasses);
+				let _class : ClassType = new ClassType(className, length, 0, _uri, parent, hasClasses, usesClasses);
 				classes.push(_class);
 			}
 		}
@@ -296,6 +264,19 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 			fileNames.concat(this.parseClassFile(text, uri));
 		}
 		return fileNames;
+	}
+
+	private async getTokens()
+	{
+		const uris = await this.getFiles();
+		const files : vscode.TextDocument[] = [];
+
+		for (const uri of uris)
+		{
+			const file = await vscode.workspace.openTextDocument(uri);
+			files.push(file);
+		}
+
 	}
 
 	public async showClassInfo(){

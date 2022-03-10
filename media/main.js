@@ -3,7 +3,6 @@
 // It cannot access the main VS Code APIs directly.
 
 
-
 (function () {
     // @ts-ignore
     const vscode = acquireVsCodeApi();
