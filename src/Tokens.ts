@@ -2,13 +2,16 @@ import * as vscode from 'vscode';
 
 
 export class Tokens{
-    t : string[];
+    public t : string[];
     
-    uri : vscode.Uri;
+    public uri : vscode.Uri;
 
-    constructor(tokens : string[], uri : vscode.Uri)
+    public lines : number;
+
+    constructor(tokens : string[], uri : vscode.Uri, lines: number)
     {
         this.t = tokens;
         this.uri = uri;
+        this.lines = lines;
     }
 }

@@ -15,11 +15,12 @@ export class Tokenizer {
     {
         for (let i = 0; i < files.length; i++)
         {
-            const token = new Tokens(this.tokenize(files[i].getText()), files[i].uri);
+            const done = this.tokenize(files[i].getText());
+            const token = new Tokens(done.tokens, files[i].uri, done.lineCount);
             this.tokens.push(token);
         }
     }
-    
+
     public getTokens()
     {
         return this.tokens;
@@ -115,6 +116,6 @@ export class Tokenizer {
             }
         }
         console.log("tokens found");
-        return tokens;
+        return {tokens, lineCount};
     }
 }
