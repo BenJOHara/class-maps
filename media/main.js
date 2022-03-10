@@ -1,7 +1,11 @@
 //@ts-check
 // This script will be run within the webview itself
 // It cannot access the main VS Code APIs directly.
+
+
+
 (function () {
+    // @ts-ignore
     const vscode = acquireVsCodeApi();
 
     const oldState = vscode.getState() || { content: [] };
@@ -64,9 +68,6 @@
     }
 
 
-    /**
-     * @param {Array<{ value: string }>} content
-     */
     function updateClassList(content)
     {
         clearClassInfo();
@@ -95,26 +96,29 @@
     {
         clearNumberOfClasses();
         clearClassList();
-        const JSONtext = JSON.parse(classInfo);
+        let prevX = 0;
+        const jsonText = JSON.parse(classInfo);
         const ul = document.querySelector('.svg1');
         ul.textContent = '';
         ul.setAttributeNS(null, 'width', '500');
         ul.setAttributeNS(null, 'height', '1000');
-        for (const c of JSONtext){
-            console.log(c);
+        for (const c of jsonText){
             console.log(c.name);
-            console.log(c.length);
             const g = document.createElement('g');
             const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
             const width = 0.25 * c.length;
             const height = 0.5 * c.length;
             rect.setAttributeNS(null, 'width', width.toString());
+            rect.setAttributeNS(null, 'x', prevX.toString());
+            prevX = width + prevX + 10;
+            console.log(prevX);
             rect.setAttributeNS(null, 'height', height.toString());
+
             rect.setAttributeNS(null, 'fill', 'white');
+            rect.setAttributeNS(null, 'stroke', 'red');
+            rect.setAttributeNS(null, 'onmouseover', "evt.target.setAttribute('fill', 'red');");
             const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             text.textContent = classInfo.name;
-            g.appendChild(rect);
-            g.appendChild(text);
             ul.appendChild(rect);
             //ul.appendChild(g);
         }

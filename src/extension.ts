@@ -1,12 +1,32 @@
+import { count } from 'console';
 import * as vscode from 'vscode';
+
+
 
 class ClassType{
 	name:string;
-	length:number;
-	constructor(_name:string, _length:number)
+	size:number;//number of lines of code that make up the class
+	uri:vscode.Uri;
+
+	//inheritence
+	parent:string;
+
+	//a part of the class is this class
+	hasClasses:string[]; 
+	
+	//this class is used in the class
+	usesClasses:string[];
+
+	constructor(_name:string, _size:number, _uri:vscode.Uri, _parent:string, _hasClasses:string[], _usesClasses:string[])
 	{
 		this.name = _name;
-		this.length = _length;
+		this.size = _size;
+		this.uri = _uri;
+
+		this.parent = _parent;
+
+		this.hasClasses = _hasClasses;
+		this.usesClasses = _usesClasses;
 	}
 }
 
@@ -33,6 +53,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('class-maps.show-class-info', () =>{
 			
 		}));
+	console.log("end activate Start");
 }
 
 class ClassViewProvider implements vscode.WebviewViewProvider{
@@ -110,6 +131,161 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 	}
 
 
+	private tokenizer(text:string)
+	{
+		let lineCount : number = 0;
+		let tokens :string [] = [];
+		const chars = [...text];
+		//last space/; 
+		let indexOfLastSpace = 0;
+		let c :string [] = [];
+		//collapes spaces
+
+		for (let i : number = 0; i < text.length; i++){
+			if ( chars[i] === '/')
+			{
+				if ( chars[i+1] ==='/')
+				{
+					while (chars[i] !== '\n')
+					{
+						//console.log("comment 1");
+						i++;
+					}
+				}
+				else if ( chars[i+1] === '*')
+				{
+					while (chars[i] !== '*' && chars[i+1] !== '/')
+					{
+						i++;
+						//console.log("comment 2", chars[i]);
+					}
+					i++; // leaves on the / so next loop over it is changed to the next
+				}
+			}
+			else if (chars[i] === '"')//strings '' or ""
+			{
+				let s :string = chars[i];
+				i++;
+				while (chars[i] !== '"')
+				{
+					s = s + chars[i];
+					//console.log("string 1", chars[i]);
+					i++;
+				}
+				s = s + chars[i];
+				tokens.push(s);
+			}
+			else if (chars[i] === '\'')
+			{
+				let s :string = chars[i];
+				i++;
+				while (chars[i] !== '\'')
+				{
+					s = s + chars[i];
+					//console.log("char  1");
+					i++;
+				}
+				s = s + chars[i];
+				tokens.push(s);
+			}
+			else if ((/[a-zA-Z_$]/).test(chars[i]))
+			{
+				let s :string = chars[i];
+				i++;
+				const keywords :string [] = [ "abstract", "assert", "boolean",
+                "break", "byte", "case", "catch", "char", "class", "const",
+                "continue", "default", "do", "double", "else", "extends", "false",
+                "final", "finally", "float", "for", "goto", "if", "implements",
+                "import", "instanceof", "int", "interface", "long", "native",
+                "new", "null", "package", "private", "protected", "public",
+                "return", "short", "static", "strictfp", "super", "switch",
+                "synchronized", "this", "throw", "throws", "transient", "true",
+                "try", "void", "volatile", "while" ];
+				
+				while ((/[a-zA-Z0-9_$]/).test(chars[i]))
+				{
+					s = s+ chars[i];
+					i++;
+					
+					//console.log("id 1");
+				}
+				i--;
+				tokens.push(s);//may need to add here to check if is keyword from above
+			}
+			else if ((/[0-9]/).test(chars[i]))
+			{
+				let s :string = chars[i];
+				i++;
+				while ((/[0-9]/).test(chars[i])){
+					s = s + chars[i];
+					i++;
+					//console.log("number 1");
+				}
+				i--;
+				tokens.push(s);
+			}
+			else if (chars[i] === '\n')
+			{
+				lineCount++;
+			}
+			else//i dont care about anything else
+			{
+				let s : string = '';
+				if (chars[i] !== ' ' && chars[i] !== '	' && chars[i] !== '\n' && chars[i] !== ';')
+				{
+					s = s + chars[i];
+					//console.log("symbol 1", chars[i]);
+				}
+				if ( s === '')
+				{
+
+				}
+				else 
+				{
+					tokens.push(s);
+				}
+			}
+		}		
+		console.log("tokens found");
+		return tokens;
+	}
+
+	private parseClassFile(text:string, uri : vscode.Uri)
+	{
+		//find number of classes
+		const tokens : string[] = this.tokenizer(text);
+		const classes : ClassType[] = [];
+		for (let i : number = 0; i < tokens.length; i++)
+		{
+			if (tokens[i] === "class")//class found
+			{
+				let length : number = 0;
+				const className : string = tokens[i+1];
+				if (tokens.indexOf("class", i + 1) === -1)
+				{
+					
+				}
+				else
+				{
+					length = tokens.indexOf("class", i + 1);
+				}
+				let parent : string = '';
+				if (tokens.indexOf("extends", i + 1) < tokens.indexOf("class", i + 1)){
+					parent = tokens[tokens.indexOf("extends", i + 1) + 1];// extends 
+				}
+
+				const hasClasses : string [] = [];
+				const usesClasses : string [] = [];
+
+				const _uri : vscode.Uri = uri;
+
+				let _class : ClassType = new ClassType(className, length, _uri, parent, hasClasses, usesClasses);
+				classes.push(_class);
+			}
+		}
+		return classes;
+	}
+
 	private async getNamesAndSize() {
 		const uris = await this.getFiles();
 		const fileNames : ClassType[] = [];
@@ -117,17 +293,16 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 		{
 			const file = await vscode.workspace.openTextDocument(uri);
 			const text = file.getText();
-			const indexOfClassId = text.indexOf('class') + 6;
-			fileNames.push(new ClassType(text.substring(indexOfClassId).substring(0, text.substring(indexOfClassId).indexOf('{')), file.lineCount)); 
+			fileNames.concat(this.parseClassFile(text, uri));
 		}
 		return fileNames;
 	}
 
 	public async showClassInfo(){
 		const content = await this.getNamesAndSize();
-		const JSONtext = JSON.stringify(content);
+		const jsonText = JSON.stringify(content);
 		if (this._view) {
-			this._view.webview.postMessage({ type: 'showClassInfo', content: JSONtext });
+			this._view.webview.postMessage({ type: 'showClassInfo', content: jsonText });
 		}
 	}
 
