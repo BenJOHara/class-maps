@@ -4,7 +4,6 @@ import { ClassType } from './ClassType';
 import { Tokenizer } from './Tokenizer';
 import { Tokens } from './Tokens';
 
-
 export function activate(context: vscode.ExtensionContext) {
 	
 	console.log('class-maps is now active');
@@ -158,7 +157,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 					s = s + chars[i];
 					i++;
 				}
-				//s = s + chars[i];
+				s = s + chars[i];
 				tokens.push(s);
 			}
 			else if ((/[a-zA-Z_$]/).test(chars[i]))
@@ -216,10 +215,6 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 			}
 		}		
 		console.log("tokens found");
-		for (let i = 0; i < tokens.length; i++)
-		{
-			console.log(tokens[i]);
-		}
 		return tokens;
 	}
 
@@ -271,42 +266,8 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 		}
 		return fileNames;
 	}
-/*
-	private async getTokens()
-	{
-		/*const uris = await this.getFiles();
-		const files : vscode.TextDocument[] = [];
 
-		for (const uri of uris)
-		{
-			const file = await vscode.workspace.openTextDocument(uri);
-			files.push(file);
-		}
 
-		const tokienizer = new Tokenizer(files);
-
-		const tokens : Tokens[] = tokienizer.getTokens();
-
-		for (let i = 0; i < tokens.length; i++)
-		{
-			let classCount : number = 0;
-			const classIndex : number[] = [];
-			for (let a = 0; a < tokens[i].t.length; a++)
-			{//split into classes
-				const t = tokens[i].t[a];
-				if (t === "class")
-				{
-					classCount++;
-					classIndex.push(a);
-				}
-			}
-			for (let a = 0; a < classCount; a++)
-			{
-
-			}
-		}
-	}
-*/
 	public async showClassInfo(){
 		const content = await this.getNamesAndSize();
 		const jsonText = JSON.stringify(content);
