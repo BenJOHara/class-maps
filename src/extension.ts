@@ -1,4 +1,5 @@
 import { count } from 'console';
+import { start } from 'repl';
 import * as vscode from 'vscode';
 import { ClassType } from './ClassType';
 import { Tokenizer } from './Tokenizer';
@@ -100,171 +101,73 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 		{
 			const file = await vscode.workspace.openTextDocument(uri);
 			const text = file.getText();
-			const indexOfClassId = text.indexOf('class') + 6;
+			const indexOfClassId = text.indexOf('class ') + 6;
 			fileNames.push(text.substring(indexOfClassId).substring(0, text.substring(indexOfClassId).indexOf('{'))); 
 		}
 		return fileNames;
 	}
 
-
-	private tokenizer(text:string)
-	{
-		let lineCount : number = 0;
-		let tokens :string [] = [];
-		const chars = [...text];
-		//last space/; 
-		let indexOfLastSpace = 0;
-		let c :string [] = [];
-		//collapes spaces
-
-		for (let i : number = 0; i < text.length; i++){
-			if ( chars[i] === '/')
-			{
-				if ( chars[i+1] ==='/')
-				{
-					while (chars[i] !== '\n')
-					{
-						i++;
-					}
-				}
-				else if ( chars[i+1] === '*')
-				{
-					while (chars[i] !== '*' && chars[i+1] !== '/')
-					{
-						i++;
-					}
-					i++; // leaves on the / so next loop over it is changed to the next
-				}
-			}
-			else if (chars[i] === '"')//strings '' or ""
-			{
-				let s :string = chars[i];
-				i++;
-				while (chars[i] !== '"')
-				{
-					s = s + chars[i];
-					i++;
-				}
-				s = s + chars[i];
-				tokens.push(s);
-			}
-			else if (chars[i] === '\'')
-			{
-				let s :string = chars[i];
-				i++;
-				while (chars[i] !== '\'')
-				{
-					s = s + chars[i];
-					i++;
-				}
-				s = s + chars[i];
-				tokens.push(s);
-			}
-			else if ((/[a-zA-Z_$]/).test(chars[i]))
-			{
-				let s :string = chars[i];
-				i++;
-				const keywords :string [] = [ "abstract", "assert", "boolean",
-                "break", "byte", "case", "catch", "char", "class", "const",
-                "continue", "default", "do", "double", "else", "extends", "false",
-                "final", "finally", "float", "for", "goto", "if", "implements",
-                "import", "instanceof", "int", "interface", "long", "native",
-                "new", "null", "package", "private", "protected", "public",
-                "return", "short", "static", "strictfp", "super", "switch",
-                "synchronized", "this", "throw", "throws", "transient", "true",
-                "try", "void", "volatile", "while" ];
-				
-				while ((/[a-zA-Z0-9_$]/).test(chars[i]))
-				{
-					s = s+ chars[i];
-					i++;
-				}
-				i--;
-				tokens.push(s);//may need to add here to check if is keyword from above
-			}
-			else if ((/[0-9]/).test(chars[i]))
-			{
-				let s :string = chars[i];
-				i++;
-				while ((/[0-9]/).test(chars[i])){
-					s = s + chars[i];
-					i++;
-				}
-				i--;
-				tokens.push(s);
-			}
-			else if (chars[i] === '\n')
-			{
-				lineCount++;
-			}
-			else//i dont care about anything else
-			{
-				let s : string = '';
-				if (chars[i] !== ' ' && chars[i] !== '	' && chars[i] !== '\n' && chars[i] !== ';')
-				{
-					s = s + chars[i];
-				}
-				if ( s === '')
-				{
-
-				}
-				else 
-				{
-					tokens.push(s);
-				}
-			}
-		}		
-		console.log("tokens found");
-		return tokens;
-	}
-
-
-	private parseClassFile(text:string, uri : vscode.Uri)
-	{
-		//find number of classes
-		const tokens : string[] = this.tokenizer(text);
-		const classes : ClassType[] = [];
-		for (let i : number = 0; i < tokens.length; i++)
-		{
-			if (tokens[i] === "class")//class found
-			{
-				let length : number = 0;
-				const className : string = tokens[i+1];
-				if (tokens.indexOf("class", i + 1) === -1)
-				{
-					length = tokens.length;
-				}
-				else
-				{
-					length = tokens.indexOf("class", i + 1);
-				}
-				let parent : string = '';
-				if (tokens.indexOf("extends", i + 1) < tokens.indexOf("class", i + 1)){
-					parent = tokens[tokens.indexOf("extends", i + 1) + 1];// extends 
-				}
-
-				const hasClasses : string [] = [];
-				const usesClasses : string [] = [];
-
-				const _uri : vscode.Uri = uri;
-
-				let _class : ClassType = new ClassType(className, length, 0, _uri, parent, hasClasses, usesClasses);
-				classes.push(_class);
-			}
-		}
-		return classes;
-	}
-
 	private async getNamesAndSize() {
 		const uris = await this.getFiles();
-		const fileNames : ClassType[] = [];
+		const classes : ClassType[] = [];
+		const files : vscode.TextDocument[] = [];
 		for (const uri of uris)
 		{
 			const file = await vscode.workspace.openTextDocument(uri);
-			const text = file.getText();
-			fileNames.concat(this.parseClassFile(text, uri));
+			files.push(file);
 		}
-		return fileNames;
+
+		const tokenizer : Tokenizer = new Tokenizer(files);
+		const tokens : Tokens [] = tokenizer.getTokens();
+		let numberOfClasses = 0;
+		let classFound : boolean = false;
+		let braceFound : boolean = false;
+		let braceTally : number = 0;
+		let lineCount : number = 0;
+		let startOfClass : number = 0;
+		//TODO: assign -/name, -/length, -/width, -/uri, -/parent, this second --> hasClasses, usesClasses
+		tokens.forEach( (token, i) => token.t.forEach( (t, j) => {
+			if (t === 'class')
+			{
+				startOfClass = j;
+				numberOfClasses++;
+				classFound = true;
+				classes[numberOfClasses - 1] = new ClassType();
+				classes[numberOfClasses - 1].uri = token.uri;
+				classes[numberOfClasses - 1].name = token.t[j + 1];
+				
+			}
+			else if (t === 'extends')
+			{
+				//has parent
+				classes[numberOfClasses - 1].parent = token.t[j + 1];// -1 as zero index and j+ 1 cus class name is next token
+			}
+			else if (t === '{')
+			{
+				braceFound = true;
+				braceTally++;
+			}
+			else if (t === '}')
+			{
+				braceTally = braceTally - 1;
+			}
+			else if (t === '\n')
+			{
+				lineCount++;
+			}
+			if (braceTally === 0 && braceFound && classFound)
+			{
+				classes[numberOfClasses - 1].length = lineCount;
+				classes[numberOfClasses - 1].width = j - startOfClass;
+				//end of a class should have all info
+				classFound = false;
+				braceFound = false;
+				lineCount = 0;
+			}
+
+		}));
+		console.log(classes);
+		return classes;
 	}
 
 

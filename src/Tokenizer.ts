@@ -34,7 +34,7 @@ export class Tokenizer {
         //collapes spaces
 
         for (let i: number = 0; i < text.length; i++) {
-            if (chars[i] === '/') {
+            if (chars[i] === '/') {//comments
                 if (chars[i + 1] === '/') {
                     while (chars[i] !== '\n') {
                         i++;
@@ -51,14 +51,17 @@ export class Tokenizer {
             {
                 let s: string = chars[i];
                 i++;
-                while (chars[i] !== '"') {
+                if (chars[i] === '"'){//need to catch \"
+                    console.log(i);
+                }
+                while (chars[i] !== '"' || (chars[i] === '"' && chars[i - 1] === '\\')) {
                     s = s + chars[i];
                     i++;
                 }
                 s = s + chars[i];
                 tokens.push(s);
             }
-            else if (chars[i] === '\'') {
+            else if (chars[i] === '\'') {//strings
                 let s: string = chars[i];
                 i++;
                 while (chars[i] !== '\'') {
@@ -68,7 +71,7 @@ export class Tokenizer {
                 s = s + chars[i];
                 tokens.push(s);
             }
-            else if ((/[a-zA-Z_$]/).test(chars[i])) {
+            else if ((/[a-zA-Z_$]/).test(chars[i])) {//ids 
                 let s: string = chars[i];
                 i++;
                 const keywords: string[] = ["abstract", "assert", "boolean",
@@ -81,14 +84,14 @@ export class Tokenizer {
                     "synchronized", "this", "throw", "throws", "transient", "true",
                     "try", "void", "volatile", "while"];
 
-                while ((/[a-zA-Z0-9_$]/).test(chars[i])) {
+                while ((/[a-zA-Z0-9_$.]/).test(chars[i])) {
                     s = s + chars[i];
                     i++;
                 }
                 i--;
                 tokens.push(s);//may need to add here to check if is keyword from above
             }
-            else if ((/[0-9]/).test(chars[i])) {
+            else if ((/[0-9]/).test(chars[i])) {//numbers
                 let s: string = chars[i];
                 i++;
                 while ((/[0-9]/).test(chars[i])) {
@@ -98,7 +101,8 @@ export class Tokenizer {
                 i--;
                 tokens.push(s);
             }
-            else if (chars[i] === '\n') {
+            else if (chars[i] === '\n') {//newlines
+                tokens.push(chars[i]);
                 lineCount++;
             }
             else//i dont care about anything else
