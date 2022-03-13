@@ -137,7 +137,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 				classes[numberOfClasses - 1].name = token.t[j + 1];
 				
 			}
-			else if (t === 'extends')
+			else if (t === 'extends') 
 			{
 				//has parent
 				classes[numberOfClasses - 1].parent = token.t[j + 1];// -1 as zero index and j+ 1 cus class name is next token

@@ -101,12 +101,14 @@
         ul.textContent = '';
         ul.setAttributeNS(null, 'width', '500');
         ul.setAttributeNS(null, 'height', '1000');
+        
+
         for (const c of jsonText){
             console.log(c.length);
             console.log(c.name);
             const g = document.createElement('g');
             const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            const width = 0.25 * c.length;
+            const width = 0.1 * c.width;
             const height = 0.5 * c.length;
             rect.setAttributeNS(null, 'width', width.toString());
             rect.setAttributeNS(null, 'x', prevX.toString());
