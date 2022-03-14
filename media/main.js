@@ -2,6 +2,9 @@
 // This script will be run within the webview itself
 // It cannot access the main VS Code APIs directly.
 
+//const { lchmodSync } = require("fs");
+//const { json } = require("stream/consumers");
+
 
 (function () {
     // @ts-ignore
@@ -91,19 +94,22 @@
         ul.textContent = '';
     }
 
+    
     function updateClassInfo(classInfo)
     {
         clearNumberOfClasses();
         clearClassList();
         let prevX = 0;
-        const jsonText = JSON.parse(classInfo);
+        const classes = JSON.parse(classInfo);
         const ul = document.querySelector('.svg1');
         ul.textContent = '';
         ul.setAttributeNS(null, 'width', '500');
         ul.setAttributeNS(null, 'height', '1000');
-        
-
-        for (const c of jsonText){
+        console.log(classes);
+        for (let i = 0; i < classes.length; i++)
+        {
+            const c = classes[i];
+            console.log(c);
             console.log(c.length);
             console.log(c.name);
             const g = document.createElement('g');
@@ -118,7 +124,7 @@
 
             rect.setAttributeNS(null, 'fill', 'white');
             rect.setAttributeNS(null, 'stroke', 'red');
-            rect.setAttributeNS(null, 'onmouseover', "evt.target.setAttribute('fill', 'red');");
+            rect.setAttributeNS(null, 'onclick', "console.log('clicked')");
             const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             text.textContent = classInfo.name;
             ul.appendChild(rect);

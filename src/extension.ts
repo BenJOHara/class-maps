@@ -171,9 +171,54 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 	}
 
 
+	private sortClassesArray(classes : ClassType []) : ClassType[]
+	{
+		const a1 : ClassType[] = [];
+		const a2 : ClassType[] = [];
+
+		if (classes.length === 1)
+		{
+			return classes;
+		}
+		else if (classes.length === 0)
+		{
+			return [];
+		}
+		else 
+		{
+			const pivot = classes[0];
+			for (let i = 1; i < classes.length; i++)
+			{
+				if (this.compareClasses(pivot, classes[i]))//true if pivot smaller
+				{
+					a1.push(classes[i]);
+				}
+				else
+				{
+					a2.push(classes[i]);
+				}
+			}
+			return this.sortClassesArray(a1).concat(classes[0]).concat(this.sortClassesArray(a2));
+		}
+
+	}
+
+	private compareClasses(a : ClassType, b : ClassType)
+    {
+        if (a.length < b.length)
+        {
+            return true;
+        }
+        else 
+        {
+            return false;
+        }
+    }
+
 	public async showClassInfo(){
 		const content = await this.getNamesAndSize();
-		const jsonText = JSON.stringify(content);
+		const sorted = this.sortClassesArray(content);
+		const jsonText = JSON.stringify(sorted);
 		if (this._view) {
 			this._view.webview.postMessage({ type: 'showClassInfo', content: jsonText });
 		}
