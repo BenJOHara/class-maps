@@ -74,15 +74,6 @@ export class Tokenizer {
             else if ((/[a-zA-Z_$]/).test(chars[i])) {//ids 
                 let s: string = chars[i];
                 i++;
-                const keywords: string[] = ["abstract", "assert", "boolean",
-                    "break", "byte", "case", "catch", "char", "class", "const",
-                    "continue", "default", "do", "double", "else", "extends", "false",
-                    "final", "finally", "float", "for", "goto", "if", "implements",
-                    "import", "instanceof", "int", "interface", "long", "native",
-                    "new", "null", "package", "private", "protected", "public",
-                    "return", "short", "static", "strictfp", "super", "switch",
-                    "synchronized", "this", "throw", "throws", "transient", "true",
-                    "try", "void", "volatile", "while"];
 
                 while ((/[a-zA-Z0-9_$.]/).test(chars[i])) {
                     s = s + chars[i];
