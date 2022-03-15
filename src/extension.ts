@@ -76,7 +76,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 					}
 				case 'openWindow':
 					{
-						console.log(data.content);
+						//console.log(data.content);
 						const page : vscode.TextDocument = await vscode.workspace.openTextDocument(data.content.fsPath);
 						await vscode.window.showTextDocument(page);
 					}
@@ -163,6 +163,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 			{
 				classes[numberOfClasses - 1].nLines = lineCount;
 				classes[numberOfClasses - 1].nTokens = j - startOfClass;
+				console.log(classes[numberOfClasses - 1].name, lineCount, j - startOfClass);
 				//end of a class should have all info
 				classFound = false;
 				braceFound = false;
@@ -170,7 +171,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 			}
 
 		}));
-		console.log(classes);
+		//console.log(classes);
 		return classes;
 	}
 
@@ -219,9 +220,36 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
         }
     }
 
+	private setCoords(classes: ClassType[])
+	{	
+
+		for (let i:number = 0; i < classes.length; i++)
+		{
+			if (classes[i].parent !== '')//if has parent add child to parent ClassType
+			{
+				const index :number = this.indexOfParent(classes, classes[i]);
+				classes[index].children.push(classes[i]);//this wont work
+			}
+		}
+	}
+
+	//returns index of parent if not found returns -1
+	private indexOfParent(classes: ClassType[], child: ClassType)
+	{
+		for (let i:number = 0; i < classes.length; i++)
+		{
+			if (classes[i].name === child.name)
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+
 	public async showClassInfo(){
 		const content = await this.getNamesAndSize();
 		const sorted = this.sortClassesArray(content);
+		const arraigned = this.setCoords(sorted);
 		const jsonText = JSON.stringify(sorted);
 		if (this._view) {
 			this._view.webview.postMessage({ type: 'showClassInfo', content: jsonText });

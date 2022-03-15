@@ -17,6 +17,7 @@ export class Tokenizer {
         {
             const done = this.tokenize(files[i].getText());
             const token = new Tokens(done.tokens, files[i].uri, done.lineCount);
+            //console.log( files[i].fileName, "tokens found", token.lines, token.t.length);
             this.tokens.push(token);
         }
     }
@@ -25,6 +26,7 @@ export class Tokenizer {
     {
         return this.tokens;
     }
+
 
     private tokenize(text:string) {
         let lineCount: number = 0;
@@ -52,7 +54,7 @@ export class Tokenizer {
                 let s: string = chars[i];
                 i++;
                 if (chars[i] === '"'){//need to catch \"
-                    console.log(i);
+                    //console.log(i);
                 }
                 while (chars[i] !== '"' || (chars[i] === '"' && chars[i - 1] === '\\')) {
                     s = s + chars[i];
@@ -110,7 +112,6 @@ export class Tokenizer {
                 }
             }
         }
-        console.log("tokens found");
         return {tokens, lineCount};
     }
 }

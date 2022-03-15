@@ -19,7 +19,6 @@ export class ClassType{
 	//this class is used in the class
 	usesClasses:string[] = [];
 
-
 	//for CSS
 	x:number = 0;
 	y:number = 0;

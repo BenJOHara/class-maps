@@ -147,7 +147,7 @@
 
         ul.setAttributeNS(null, 'width', window.screen.availWidth.toString());
         ul.setAttributeNS(null, 'height', window.screen.availHeight.toString());
-        console.log(window.screen.availWidth.toString(), window.screen.availHeight.toString(), window.screen.height, window.screen.width);
+        //console.log(window.screen.availWidth.toString(), window.screen.availHeight.toString(), window.screen.height, window.screen.width);
 
         //console.log(classes);
         for (let i = 0; i < classes.length; i++)
@@ -159,10 +159,11 @@
             const width = 0.1 * c.nTokens;
             const height = 0.5 * c.nLines;
             rect.setAttributeNS(null, 'width', width.toString());
+            rect.setAttributeNS(null, 'height', height.toString());
+
             rect.setAttributeNS(null, 'x', prevX.toString());
             prevX = width + prevX + 10;
             //console.log(prevX);
-            rect.setAttributeNS(null, 'height', height.toString());
             rect.setAttributeNS(null, 'cursor', 'pointer');
             rect.setAttributeNS(null, 'fill', 'white');
             rect.setAttributeNS(null, 'stroke', 'red');
