@@ -1,5 +1,3 @@
-import { count } from 'console';
-import { start } from 'repl';
 import * as vscode from 'vscode';
 import { ClassType } from './ClassType';
 import { Tokenizer } from './Tokenizer';
@@ -75,6 +73,12 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 					{
 						await this.showClassInfo();
 						break;
+					}
+				case 'openWindow':
+					{
+						console.log(data.content);
+						const page : vscode.TextDocument = await vscode.workspace.openTextDocument(data.content.fsPath);
+						await vscode.window.showTextDocument(page);
 					}
 			}
 		});
@@ -157,8 +161,8 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 			}
 			if (braceTally === 0 && braceFound && classFound)
 			{
-				classes[numberOfClasses - 1].length = lineCount;
-				classes[numberOfClasses - 1].width = j - startOfClass;
+				classes[numberOfClasses - 1].nLines = lineCount;
+				classes[numberOfClasses - 1].nTokens = j - startOfClass;
 				//end of a class should have all info
 				classFound = false;
 				braceFound = false;
@@ -205,7 +209,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 
 	private compareClasses(a : ClassType, b : ClassType)
     {
-        if (a.length < b.length)
+        if (a.nLines < b.nLines)
         {
             return true;
         }

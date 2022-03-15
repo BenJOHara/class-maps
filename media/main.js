@@ -94,6 +94,45 @@
         ul.textContent = '';
     }
 
+    function setRect(c)
+    {
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+
+        //position in SVG
+        rect.setAttributeNS(null, 'x', c.x);
+        rect.setAttributeNS(null, 'y', c.y);
+
+        //size of rect in SVG
+        rect.setAttributeNS(null, 'height', c.height.toString());
+        rect.setAttributeNS(null, 'width', c.width.toString());
+        
+        //CSS of rect and cursor
+        rect.setAttributeNS(null, 'cursor', 'pointer');
+        rect.setAttributeNS(null, 'fill', 'white');
+        rect.setAttributeNS(null, 'stroke', 'red');
+
+        const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        title.textContent = c.name  + 'test' ;
+
+        //onclick tell extension 
+        rect.onclick = function(){
+            vscode.postMessage({type:'openWindow', content : c.uri});
+        };
+
+        //onmouseover change css
+        rect.onmouseover = function(){
+            rect.setAttributeNS(null, 'fill', 'blue');
+            rect.setAttributeNS(null, 'stroke', 'white');
+        };
+        rect.onmouseout = function(){
+            rect.setAttributeNS(null, 'fill', 'white');
+            rect.setAttributeNS(null, 'stroke', 'red');
+        };
+
+        rect.appendChild(title);
+
+        return rect;
+    }
     
     function updateClassInfo(classInfo)
     {
@@ -103,28 +142,44 @@
         const classes = JSON.parse(classInfo);
         const ul = document.querySelector('.svg1');
         ul.textContent = '';
-        ul.setAttributeNS(null, 'width', '500');
-        ul.setAttributeNS(null, 'height', '1000');
-        console.log(classes);
+
+        
+
+        ul.setAttributeNS(null, 'width', window.screen.availWidth.toString());
+        ul.setAttributeNS(null, 'height', window.screen.availHeight.toString());
+        console.log(window.screen.availWidth.toString(), window.screen.availHeight.toString(), window.screen.height, window.screen.width);
+
+        //console.log(classes);
         for (let i = 0; i < classes.length; i++)
         {
+            //const rect = setRect(classes[i], , '0');
             const c = classes[i];
-            console.log(c);
-            console.log(c.length);
-            console.log(c.name);
             const g = document.createElement('g');
             const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            const width = 0.1 * c.width;
-            const height = 0.5 * c.length;
+            const width = 0.1 * c.nTokens;
+            const height = 0.5 * c.nLines;
             rect.setAttributeNS(null, 'width', width.toString());
             rect.setAttributeNS(null, 'x', prevX.toString());
             prevX = width + prevX + 10;
-            console.log(prevX);
+            //console.log(prevX);
             rect.setAttributeNS(null, 'height', height.toString());
-
+            rect.setAttributeNS(null, 'cursor', 'pointer');
             rect.setAttributeNS(null, 'fill', 'white');
             rect.setAttributeNS(null, 'stroke', 'red');
-            rect.setAttributeNS(null, 'onclick', "console.log('clicked')");
+            rect.onclick = function(){
+                //console.log('clicked ' + c.name); //post message to open class in new window
+                vscode.postMessage({type:'openWindow', content : c.uri});
+            };
+            rect.onmouseover = function(){
+                //console.log('hover ' + c.name);
+                rect.setAttributeNS(null, 'fill', 'red');
+                rect.setAttributeNS(null, 'stroke', 'white');
+            };
+            rect.onmouseout = function(){
+                //console.log('hover out ' + c.name);
+                rect.setAttributeNS(null, 'fill', 'white');
+                rect.setAttributeNS(null, 'stroke', 'red');
+            };
             const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             text.textContent = classInfo.name;
             ul.appendChild(rect);
