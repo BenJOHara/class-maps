@@ -143,8 +143,6 @@
         const ul = document.querySelector('.svg1');
         ul.textContent = '';
 
-        
-
         ul.setAttributeNS(null, 'width', window.screen.availWidth.toString());
         ul.setAttributeNS(null, 'height', window.screen.availHeight.toString());
         //console.log(window.screen.availWidth.toString(), window.screen.availHeight.toString(), window.screen.height, window.screen.width);

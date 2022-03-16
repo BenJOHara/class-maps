@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { ClassForest } from './ClassForest';
 import { ClassType } from './ClassType';
 import { Tokenizer } from './Tokenizer';
 import { Tokens } from './Tokens';
@@ -222,28 +223,9 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 
 	private setCoords(classes: ClassType[])
 	{	
-
-		for (let i:number = 0; i < classes.length; i++)
-		{
-			if (classes[i].parent !== '')//if has parent add child to parent ClassType
-			{
-				const index :number = this.indexOfParent(classes, classes[i]);
-				classes[index].children.push(classes[i]);//this wont work
-			}
-		}
-	}
-
-	//returns index of parent if not found returns -1
-	private indexOfParent(classes: ClassType[], child: ClassType)
-	{
-		for (let i:number = 0; i < classes.length; i++)
-		{
-			if (classes[i].name === child.name)
-			{
-				return i;
-			}
-		}
-		return -1;
+		const forest = new ClassForest();
+		forest.createForest(classes);//ahaha this worked first time nice :)
+		console.log(forest.trees);
 	}
 
 	public async showClassInfo(){
