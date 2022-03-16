@@ -134,6 +134,7 @@
         return rect;
     }
     
+
     function updateClassInfo(classInfo)
     {
         clearNumberOfClasses();
@@ -143,8 +144,11 @@
         const ul = document.querySelector('.svg1');
         ul.textContent = '';
 
-        ul.setAttributeNS(null, 'width', window.screen.availWidth.toString());
-        ul.setAttributeNS(null, 'height', window.screen.availHeight.toString());
+        
+
+        ul.setAttributeNS(null, 'width', '500');
+        ul.setAttributeNS(null, 'height', '500');
+        
         //console.log(window.screen.availWidth.toString(), window.screen.availHeight.toString(), window.screen.height, window.screen.width);
 
         //console.log(classes);
@@ -154,6 +158,7 @@
             const c = classes[i];
             const g = document.createElement('g');
             const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+
             const width = 0.1 * c.nTokens;
             const height = 0.5 * c.nLines;
             rect.setAttributeNS(null, 'width', width.toString());
@@ -181,8 +186,9 @@
             };
             const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             text.textContent = classInfo.name;
+            text.innerHTML = "test";
             ul.appendChild(rect);
-            //ul.appendChild(g);
+            ul.appendChild(text);
         }
         vscode.setState({ content: content });
 

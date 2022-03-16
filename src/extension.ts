@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { ClassForest } from './ClassForest';
-import { ClassType } from './ClassType';
+import { ClassForest } from './ClassDataStruct/ClassForest';
+import { ClassType } from './ClassDataStruct/ClassType';
 import { Tokenizer } from './Tokenizer';
 import { Tokens } from './Tokens';
 
@@ -231,7 +231,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 	public async showClassInfo(){
 		const content = await this.getNamesAndSize();
 		const sorted = this.sortClassesArray(content);
-		const arraigned = this.setCoords(sorted);
+		//const arraigned = this.setCoords(sorted);
 		const jsonText = JSON.stringify(sorted);
 		if (this._view) {
 			this._view.webview.postMessage({ type: 'showClassInfo', content: jsonText });
@@ -285,9 +285,11 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 				<button class="show-names">Show class names</button>
 				<button class="show-number">Show number of classes</button>
 				<button class="show-class-info">Show classes and their sizes</button>
-				<svg class="svg1" width="0" height="0">
-				</svg>
-
+				<div class="svgDiv">
+					<svg class="svg1" width="0" height="0">
+					</svg>
+				</div>
+				
 				<ul class="class-list">
 				</ul>
 				<script nonce="${nonce}" src="${scriptUri}"></script>

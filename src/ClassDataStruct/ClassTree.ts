@@ -31,4 +31,11 @@ export class ClassTree{
             this.populate(classes, addedClasses[i]);
         }
     }
+
+    //can be done normally but at the end all x and ys must be appended with limX and limY
+    //return the limit
+    public setCoords(limX:number)
+    {
+        
+    }
 }

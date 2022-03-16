@@ -30,4 +30,20 @@ export class ClassForest{
             this.trees[i].createTree(classes);
         }
     }
+
+
+    //Tells the tree the top right corner that it can be in
+    public setCoords()
+    {
+        //first tree start at 0, dont care about y not that is for the tree
+        let x = 0;
+
+        for (let i = 0; i < this.trees.length; i++)
+        {
+            const tree = this.trees[i];
+            tree.setCoords(x);
+            //need to find the width
+
+        }
+    }
 }

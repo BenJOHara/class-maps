@@ -1,6 +1,4 @@
 import * as vscode from 'vscode';
-import { Z_PARTIAL_FLUSH } from 'zlib';
-import { ClassType } from './ClassType';
 import { Tokens } from './Tokens';
 
 //take all workspace files
