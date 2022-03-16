@@ -1,0 +1,3 @@
+class Van extends Vehicle{
+    
+}

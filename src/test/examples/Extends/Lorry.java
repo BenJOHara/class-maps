@@ -1,0 +1,3 @@
+class Lorry extends Vehicle{
+    
+}

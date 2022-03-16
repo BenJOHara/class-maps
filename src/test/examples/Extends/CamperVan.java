@@ -1,0 +1,3 @@
+class CamperVan extends Van{
+    
+}
