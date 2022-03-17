@@ -226,13 +226,15 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 		const forest = new ClassForest();
 		forest.createForest(classes);//ahaha this worked first time nice :)
 		console.log(forest.trees);
+		forest.setCoords();
+		return classes;
 	}
 
 	public async showClassInfo(){
-		const content = await this.getNamesAndSize();
+		const content = await this.getNamesAndSize();//need to set height and width based of a scale 
 		const sorted = this.sortClassesArray(content);
-		//const arraigned = this.setCoords(sorted);
-		const jsonText = JSON.stringify(sorted);
+		const arraigned = this.setCoords(sorted);
+		const jsonText = JSON.stringify(arraigned);
 		if (this._view) {
 			this._view.webview.postMessage({ type: 'showClassInfo', content: jsonText });
 		}

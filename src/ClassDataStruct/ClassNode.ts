@@ -22,4 +22,23 @@ export class ClassNode{
         console.log("added child", c.name, this.c.name);
         return this.children[this.children.length - 1];
     }
+
+    public calcTallestChild()
+    {
+        let tallest = this.children[0].c.height;
+        for (let i = 1; i < this.children.length; i++)
+        {
+            if (tallest < this.children[i].c.height)
+            {
+                tallest = this.children[i].c.height;
+            }
+        }
+        return tallest;
+    }
+
+    public setCoords(x:number, y:number)
+    {
+        this.c.x = x;
+        this.c.y = y;
+    }
 }

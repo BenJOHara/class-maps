@@ -99,20 +99,24 @@
         const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
 
         //position in SVG
-        rect.setAttributeNS(null, 'x', c.x);
-        rect.setAttributeNS(null, 'y', c.y);
+        rect.setAttributeNS(null, 'x', c.x.toString());
+        rect.setAttributeNS(null, 'y', c.y.toString());
+
+        
+        const width = 0.1 * c.nTokens;
+        const height = 0.5 * c.nLines;
 
         //size of rect in SVG
-        rect.setAttributeNS(null, 'height', c.height.toString());
-        rect.setAttributeNS(null, 'width', c.width.toString());
+        rect.setAttributeNS(null, 'height', height.toString());
+        rect.setAttributeNS(null, 'width', width.toString());
         
         //CSS of rect and cursor
         rect.setAttributeNS(null, 'cursor', 'pointer');
         rect.setAttributeNS(null, 'fill', 'white');
         rect.setAttributeNS(null, 'stroke', 'red');
 
-        const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-        title.textContent = c.name  + 'test' ;
+        //const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        //title.textContent = c.name  + 'test' ;
 
         //onclick tell extension 
         rect.onclick = function(){
@@ -129,7 +133,7 @@
             rect.setAttributeNS(null, 'stroke', 'red');
         };
 
-        rect.appendChild(title);
+        //rect.appendChild(title);
 
         return rect;
     }
@@ -154,8 +158,8 @@
         //console.log(classes);
         for (let i = 0; i < classes.length; i++)
         {
-            //const rect = setRect(classes[i], , '0');
-            const c = classes[i];
+            const rect = setRect(classes[i]);
+            /*const c = classes[i];
             const g = document.createElement('g');
             const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
 
@@ -186,9 +190,9 @@
             };
             const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             text.textContent = classInfo.name;
-            text.innerHTML = "test";
+            text.innerHTML = "test";*/
             ul.appendChild(rect);
-            ul.appendChild(text);
+            //ul.appendChild(text);
         }
         vscode.setState({ content: content });
 
