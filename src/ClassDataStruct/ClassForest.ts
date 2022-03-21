@@ -36,13 +36,14 @@ export class ClassForest{
     public setCoords()
     {
         //first tree start at 0, dont care about y not that is for the tree
+        const buffer : number = 20;
         let x = 0;
         for (let i = 0; i < this.trees.length; i++)//doesnt yet work for more than one tree
         {
             const tree = this.trees[i];
             if (i !== 0)
             {
-                tree.setCoords(this.trees[i - 1].root.c.x + this.trees[i - 1].root.hiddenWidth * 0.5);
+                tree.setCoords(this.trees[i - 1].root.c.x + this.trees[i - 1].root.hiddenWidth * 0.5 + buffer);
             }
             else {
                 tree.setCoords(0);

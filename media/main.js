@@ -108,7 +108,7 @@
 
         //size of rect in SVG
         rect.setAttributeNS(null, 'height', c.height.toString());
-        rect.setAttributeNS(null, 'width', '20');
+        rect.setAttributeNS(null, 'width', c.width.toString());//
         
         //CSS of rect and cursor
         rect.setAttributeNS(null, 'cursor', 'pointer');
@@ -150,8 +150,8 @@
 
         
 
-        ul.setAttributeNS(null, 'width', '200000');
-        ul.setAttributeNS(null, 'height', '20000');
+        ul.setAttributeNS(null, 'width', '20000');
+        ul.setAttributeNS(null, 'height', '2000');
         
         //console.log(window.screen.availWidth.toString(), window.screen.availHeight.toString(), window.screen.height, window.screen.width);
 
@@ -159,6 +159,8 @@
         for (let i = 0; i < classes.length; i++)
         {
             const rect = setRect(classes[i]);
+            const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+            title.textContent = "test";
             ul.appendChild(rect);
         }
         vscode.setState({ content: content });
