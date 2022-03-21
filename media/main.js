@@ -107,8 +107,8 @@
         const height = 0.5 * c.nLines;
 
         //size of rect in SVG
-        rect.setAttributeNS(null, 'height', height.toString());
-        rect.setAttributeNS(null, 'width', width.toString());
+        rect.setAttributeNS(null, 'height', c.height.toString());
+        rect.setAttributeNS(null, 'width', '20');
         
         //CSS of rect and cursor
         rect.setAttributeNS(null, 'cursor', 'pointer');
@@ -150,8 +150,8 @@
 
         
 
-        ul.setAttributeNS(null, 'width', '500');
-        ul.setAttributeNS(null, 'height', '500');
+        ul.setAttributeNS(null, 'width', '200000');
+        ul.setAttributeNS(null, 'height', '20000');
         
         //console.log(window.screen.availWidth.toString(), window.screen.availHeight.toString(), window.screen.height, window.screen.width);
 
@@ -159,40 +159,7 @@
         for (let i = 0; i < classes.length; i++)
         {
             const rect = setRect(classes[i]);
-            /*const c = classes[i];
-            const g = document.createElement('g');
-            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-
-            const width = 0.1 * c.nTokens;
-            const height = 0.5 * c.nLines;
-            rect.setAttributeNS(null, 'width', width.toString());
-            rect.setAttributeNS(null, 'height', height.toString());
-
-            rect.setAttributeNS(null, 'x', prevX.toString());
-            prevX = width + prevX + 10;
-            //console.log(prevX);
-            rect.setAttributeNS(null, 'cursor', 'pointer');
-            rect.setAttributeNS(null, 'fill', 'white');
-            rect.setAttributeNS(null, 'stroke', 'red');
-            rect.onclick = function(){
-                //console.log('clicked ' + c.name); //post message to open class in new window
-                vscode.postMessage({type:'openWindow', content : c.uri});
-            };
-            rect.onmouseover = function(){
-                //console.log('hover ' + c.name);
-                rect.setAttributeNS(null, 'fill', 'red');
-                rect.setAttributeNS(null, 'stroke', 'white');
-            };
-            rect.onmouseout = function(){
-                //console.log('hover out ' + c.name);
-                rect.setAttributeNS(null, 'fill', 'white');
-                rect.setAttributeNS(null, 'stroke', 'red');
-            };
-            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            text.textContent = classInfo.name;
-            text.innerHTML = "test";*/
             ul.appendChild(rect);
-            //ul.appendChild(text);
         }
         vscode.setState({ content: content });
 

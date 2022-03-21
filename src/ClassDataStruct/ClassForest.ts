@@ -37,12 +37,17 @@ export class ClassForest{
     {
         //first tree start at 0, dont care about y not that is for the tree
         let x = 0;
-        for (let i = 0; i < this.trees.length; i++)
+        for (let i = 0; i < this.trees.length; i++)//doesnt yet work for more than one tree
         {
             const tree = this.trees[i];
-            tree.setCoords();
+            if (i !== 0)
+            {
+                tree.setCoords(this.trees[i - 1].root.c.x + this.trees[i - 1].root.hiddenWidth * 0.5);
+            }
+            else {
+                tree.setCoords(0);
+            }
             //need to find the width
-
         }
     }
 }

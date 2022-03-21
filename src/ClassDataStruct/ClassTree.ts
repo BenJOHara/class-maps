@@ -32,22 +32,23 @@ export class ClassTree {
     //count depth = height of tallest sibling at level + depth
     //when no children this node will be at the far left of the graph/map
     //go back up 
-    public setCoords() {
-        console.log("set Coords");
+    public setCoords(leftHW : number) {
+        //console.log("set Coords");
         this.setY(this.root, 0);//start at y = 0
         this.setHiddenWidth(this.root, []);
         if (this.root.parent.length === 0){
-            this.root.c.x = this.root.hiddenWidth / 2;
+            this.root.c.x = this.root.hiddenWidth / 2 + leftHW;
         }
-        return this.setX(this.root);
+        return this.setX(this.root, leftHW);
     }
 
 
     //depth first traversal
     private setY(root: ClassNode, depth: number) {
+        const buffer : number = 5;
         let p = root;
         p.c.y = depth;
-        depth += p.c.height;
+        depth += p.c.height + buffer;
         for (let i = 0; i < p.children.length; i++) {
             this.setY(p.children[i], depth);
         }
@@ -92,7 +93,7 @@ export class ClassTree {
         }
     }
 
-    private findX(node : ClassNode, lastX : number)
+    private findX(node : ClassNode, lastX : number, zerodX: number)
     {
         node.c.x = lastX + node.hiddenWidth * 0.5;//set x as the middle of your hidden width
         return lastX + node.hiddenWidth; //return the edge of your hidden width for the next child
@@ -100,7 +101,7 @@ export class ClassTree {
 
     //need to start at the bottom and go up
     // x of parent = sum of x of children - 1/2 * dif between x of c0 and cn
-    private setX(root: ClassNode) {
+    private setX(root: ClassNode, zerodX : number) {
         let p = root;
         let x : number = p.c.x - p.hiddenWidth * 0.5;
         p = root;
@@ -108,12 +109,12 @@ export class ClassTree {
         {
             for (let i = 0; i < p.children.length; i++) 
             {
-                x = this.findX(p.children[i], x);
+                x = this.findX(p.children[i], x, zerodX);
             }//
             for (let i = 0; i < p.children.length; i++) 
             {
-                console.log(p.c.x - 0.5 * p.hiddenWidth);
-                this.setX(p.children[i]);
+                //console.log(p.c.x - 0.5 * p.hiddenWidth);
+                this.setX(p.children[i], zerodX);
             }
         }
     }

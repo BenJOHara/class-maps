@@ -13,6 +13,7 @@ export class Tokenizer {
     {
         for (let i = 0; i < files.length; i++)
         {
+            //console.log( files[i].fileName, "FILE NAME");
             const done = this.tokenize(files[i].getText());
             const token = new Tokens(done.tokens, files[i].uri, done.lineCount);
             //console.log( files[i].fileName, "tokens found", token.lines, token.t.length);
@@ -23,6 +24,33 @@ export class Tokenizer {
     public getTokens()
     {
         return this.tokens;
+    }
+
+
+    //will the next char in this string be esacped
+    private isEscaped(text:string) : boolean
+    {
+        if (text.length === 1)
+        {
+            if (text === '\\')
+            {
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+        else 
+        {
+            if (text.charAt(text.length - 1) !== '\\')
+            {
+                return false;
+            }
+            else 
+            {
+                return !this.isEscaped(text.substring(0, text.length - 1));
+            }
+        }
     }
 
 
@@ -41,7 +69,7 @@ export class Tokenizer {
                     }
                 }
                 else if (chars[i + 1] === '*') {
-                    while (chars[i] !== '*' && chars[i + 1] !== '/') {
+                    while (!(chars[i] === '*' && chars[i + 1] === '/')) {
                         i++;
                     }
                     i++; // leaves on the / so next loop over it is changed to the next
@@ -54,7 +82,7 @@ export class Tokenizer {
                 if (chars[i] === '"'){//need to catch \"
                     //console.log(i);
                 }
-                while (chars[i] !== '"' || (chars[i] === '"' && chars[i - 1] === '\\')) {
+                while (chars[i] !== '"' || (chars[i] === '"' && this.isEscaped(s))) {
                     s = s + chars[i];
                     i++;
                 }
@@ -64,7 +92,7 @@ export class Tokenizer {
             else if (chars[i] === '\'') {//strings
                 let s: string = chars[i];
                 i++;
-                while (chars[i] !== '\'') {
+                while (chars[i] !== '\'' || (chars[i] === '\'' && this.isEscaped(s))) {
                     s = s + chars[i];
                     i++;
                 }
