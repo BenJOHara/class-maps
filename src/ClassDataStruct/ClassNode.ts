@@ -4,11 +4,16 @@ export class ClassNode{
     parent:ClassNode[] = [];//if length = 0 then no parents if = 1 then parent
     children:ClassNode[] = [];
 
+    level:number;
+
     c : ClassType;
 
-    constructor(_c: ClassType, parent? : ClassNode)
+    hiddenWidth : number = 0; // this is the sum of the hiddenwidth of the nodes children
+
+    constructor(_c: ClassType, _level:number , parent? : ClassNode)
     {
         this.c = _c;
+        this.level = _level;
         if (parent !== undefined)
         {
             this.parent.push(parent);//if parent add
@@ -16,10 +21,10 @@ export class ClassNode{
     }
 
     //returns the node of the child
-    public addChild(c : ClassType)
+    public addChild(c : ClassType, level:number)
     {
-        this.children.push(new ClassNode(c));
-        console.log("added child", c.name, this.c.name);
+        this.children.push(new ClassNode(c, level, this));
+        //console.log("added child", c.name, this.c.name);
         return this.children[this.children.length - 1];
     }
 

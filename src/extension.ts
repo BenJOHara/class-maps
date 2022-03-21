@@ -164,7 +164,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 			{
 				classes[numberOfClasses - 1].nLines = lineCount;
 				classes[numberOfClasses - 1].nTokens = j - startOfClass;
-				console.log(classes[numberOfClasses - 1].name, lineCount, j - startOfClass);
+				//console.log(classes[numberOfClasses - 1].name, lineCount, j - startOfClass);
 				//end of a class should have all info
 				classFound = false;
 				braceFound = false;
@@ -225,16 +225,27 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 	{	
 		const forest = new ClassForest();
 		forest.createForest(classes);//ahaha this worked first time nice :)
-		console.log(forest.trees);
+		//console.log(forest.trees);
 		forest.setCoords();
+		return classes;
+	}
+
+	private setSize(classes: ClassType[])
+	{
+		for (let i : number = 0; i < classes.length; i++)
+		{
+			classes[i].height = classes[i].nLines * classes[i].scale;
+			classes[i].width = 50;//default can change this in some ways idk yet
+		}
 		return classes;
 	}
 
 	public async showClassInfo(){
 		const content = await this.getNamesAndSize();//need to set height and width based of a scale 
-		const sorted = this.sortClassesArray(content);
-		const arraigned = this.setCoords(sorted);
-		const jsonText = JSON.stringify(arraigned);
+		this.sortClassesArray(content);
+		this.setSize(content);
+		this.setCoords(content);
+		const jsonText = JSON.stringify(content);
 		if (this._view) {
 			this._view.webview.postMessage({ type: 'showClassInfo', content: jsonText });
 		}

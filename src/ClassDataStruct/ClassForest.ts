@@ -15,19 +15,19 @@ export class ClassForest{
 
     public createForest(classes : ClassType [])
     {
+        const keys : number [] = [...classes.keys()];
         for (let i = 0; i < classes.length; i++)
         {
-            if (classes[i].parent === '')//if no parent then the root of a tree
+            if (classes[i].parent === '' && keys.indexOf(i) !== -1)//if no parent then the root of a tree
             {
                 this.addTree(classes[i]);
-                classes.splice(i,1);//remove parent from classes array
-                i--;
+                keys.splice(keys.indexOf(i), 1);//remove parent from classes array
             }
         }
         //now go per parent recursivly
         for (let i = 0; i < this.trees.length; i++)
         {
-            this.trees[i].createTree(classes);
+            this.trees[i].createTree(classes, keys);
         }
     }
 
@@ -37,11 +37,10 @@ export class ClassForest{
     {
         //first tree start at 0, dont care about y not that is for the tree
         let x = 0;
-
         for (let i = 0; i < this.trees.length; i++)
         {
             const tree = this.trees[i];
-            tree.setCoords(x);
+            tree.setCoords();
             //need to find the width
 
         }

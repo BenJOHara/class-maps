@@ -26,6 +26,8 @@ export class ClassType{
 	height:number = 0;
 	width:number = 0;
 
+	scale:number = 1;
+
 
 	constructor()
 	{
