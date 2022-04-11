@@ -94,6 +94,50 @@
         ul.textContent = '';
     }
 
+    //from a child finds the start and end of the line between parent and child
+    function findStartAndEnd(c)
+    {
+        if (c.parent.length === 0)
+        {
+            return [[0,0],[0,0]];//if no parent draw a line from 0,0 to 0,0 idk what happens if u do this i assume no line
+        }
+
+        //parent exists
+        //find x
+        let pX = c.parentType.x + 0.5* c.parentType.width;
+        let pY = c.parentType.y + c.parentType.height;
+
+        let cX = c.x + 0.5 * c.width;
+        let cY = c.y;
+
+
+        return [[pX, pY],[cX,cY]];
+    }
+
+    function setLine(c)
+    {
+        console.log(c);
+        let startAndEnd = findStartAndEnd(c);
+        console.log(startAndEnd);
+        if (startAndEnd === [[0,0],[0,0]])
+        {
+            return;
+        }
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+
+        line.setAttributeNS(null, 'x1', startAndEnd[0][0].toString());
+        line.setAttributeNS(null, 'y1', startAndEnd[0][1].toString());
+        line.setAttributeNS(null, 'x2', startAndEnd[1][0].toString());
+        line.setAttributeNS(null, 'y2', startAndEnd[1][1].toString());
+
+        line.setAttributeNS(null, 'stroke-width', '1');
+
+        line.setAttributeNS(null, 'stroke', 'red');
+        return line;
+
+    }
+
     function setRect(c)
     {
         const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -159,9 +203,11 @@
         for (let i = 0; i < classes.length; i++)
         {
             const rect = setRect(classes[i]);
+            const line = setLine(classes[i]);
             const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
             title.textContent = "test";
             ul.appendChild(rect);
+            ul.appendChild(line);
         }
         vscode.setState({ content: content });
 

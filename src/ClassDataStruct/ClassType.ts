@@ -13,6 +13,8 @@ export class ClassType{
 	//inheritence
 	parent:string = '';
 
+	parentType: ClassType;
+
 	//a part of the class is this class
 	hasClasses:string[] = [];
 	
@@ -26,11 +28,17 @@ export class ClassType{
 	height:number = 0;
 	width:number = 0;
 
+	//bottom middle = width + 1/2 * x,height + y
+
 	scale:number = 1;
 
 
 	constructor()
 	{
 
+	}
+
+	public setParentType(c: ClassType){
+		this.parentType = c;
 	}
 }

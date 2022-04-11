@@ -28,6 +28,7 @@ export class ClassForest{
         for (let i = 0; i < this.trees.length; i++)
         {
             this.trees[i].createTree(classes, keys);
+            this.trees[i].setParentTypes(this.trees[i].root);
         }
     }
 
@@ -38,7 +39,7 @@ export class ClassForest{
         //first tree start at 0, dont care about y not that is for the tree
         const buffer : number = 20;
         let x = 0;
-        for (let i = 0; i < this.trees.length; i++)//doesnt yet work for more than one tree
+        for (let i = 0; i < this.trees.length; i++)
         {
             const tree = this.trees[i];
             if (i !== 0)

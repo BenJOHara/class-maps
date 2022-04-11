@@ -26,6 +26,23 @@ export class ClassTree {
         }
     }
 
+    //recursive 
+    public setParentTypes(p : ClassNode)
+    {
+        if (p.children.length === 0)
+        {
+            return;//no children else
+        }
+        for (let i = 0; i < p.children.length; i++)
+        {
+            const c = p.children[i];
+            c.parent.push(p);
+            c.c.parentType = p.c;
+            this.setParentTypes(p.children[i]);
+        }
+    }
+
+
     //can be done normally but at the end all x and ys must be appended with limX and limY
     //return the limit
     //keep going down first child list

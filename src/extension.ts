@@ -224,7 +224,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 	private setCoords(classes: ClassType[])
 	{	
 		const forest = new ClassForest();
-		forest.createForest(classes);//ahaha this worked first time nice :)
+		forest.createForest(classes);//ahaha this worked first time nice :) it didnt really but almost did 
 		//console.log(forest.trees);
 		forest.setCoords();
 		return classes;
