@@ -32,6 +32,7 @@ export class ClassType{
 
 	scale:number = 1;
 
+	external:boolean = false;
 
 	constructor()
 	{

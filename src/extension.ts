@@ -12,16 +12,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(ClassViewProvider.viewType, provider));
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand('class-maps.show-names', () => {
-			
-		}));
-
-	context.subscriptions.push(
-		vscode.commands.registerCommand('class-maps.show-number', () => {
-			
-		}));
 	
 	context.subscriptions.push(
 		vscode.commands.registerCommand('class-maps.show-class-info', () =>{
@@ -58,18 +48,6 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 		webviewView.webview.onDidReceiveMessage(async data=>{
 			switch (data.type)
 			{
-				case 'getNames':
-					{
-						//webviewView.webview.postMessage({ type: 'showNames', content: ['Hello from showNames', 'element from button'] });
-						await this.showNames();
-						break;
-					}
-				case 'getNumber':
-					{
-						//webviewView.webview.postMessage({ type: 'showNumber', content: ['Hello from showNumber', 'element from button'] });
-						await this.showNumber();
-						break;
-					}
 				case 'getClassInfo':
 					{
 						await this.showClassInfo();
@@ -77,7 +55,6 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 					}
 				case 'openWindow':
 					{
-						//console.log(data.content);
 						const page : vscode.TextDocument = await vscode.workspace.openTextDocument(data.content.fsPath);
 						await vscode.window.showTextDocument(page);
 					}
@@ -85,31 +62,10 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 		});
 	}
 
-
-	private async getNumberOfFiles()
-	{
-		const files: vscode.Uri[] = await vscode.workspace.findFiles('**/*.java');
-		return files.length;
-	}
-
 	private async getFiles()
 	{
 		const files : vscode.Uri[]= await vscode.workspace.findFiles('**/*.java');
 		return files;
-	}
-
-	private async getNames()
-	{
-		const uris : vscode.Uri[] = await this.getFiles();
-		const fileNames : string[] = [];
-		for (const uri of uris)
-		{
-			const file = await vscode.workspace.openTextDocument(uri);
-			const text = file.getText();
-			const indexOfClassId = text.indexOf('class ') + 6;
-			fileNames.push(text.substring(indexOfClassId).substring(0, text.substring(indexOfClassId).indexOf('{'))); 
-		}
-		return fileNames;
 	}
 
 	private async getNamesAndSize() {
@@ -145,6 +101,10 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 			else if (t === 'extends') 
 			{
 				//has parent
+				if (classes[numberOfClasses - 1] === undefined)
+				{
+					console.log();
+				}
 				classes[numberOfClasses - 1].parent = token.t[j + 1];// -1 as zero index and j+ 1 cus class name is next token
 			}
 			else if (t === '{')
@@ -173,7 +133,34 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 
 		}));
 		//console.log(classes);
+
+		for (let i = 0; i < classes.length; i++)
+		{
+			if (!this.doesParentExist(classes, classes[i].parent))
+			{
+				// we must create this parent 
+				const c = new ClassType();
+				c.name = classes[i].parent;
+				c.nTokens = 50;
+				c.nLines = 50;
+				c.external = true;
+				classes.push(c);
+			}
+		}
+
 		return classes;
+	}
+
+	private doesParentExist(classes : ClassType[], parent : string)
+	{
+		for (let i = 0; i < classes.length; i++)
+		{
+			if (classes[i].name === parent)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 
@@ -226,6 +213,10 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 		const forest = new ClassForest();
 		forest.createForest(classes);//ahaha this worked first time nice :) it didnt really but almost did 
 		//console.log(forest.trees);
+		forest.sortIfChildren();
+	
+
+
 		forest.setCoords();
 		return classes;
 	}
@@ -235,14 +226,14 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 		for (let i : number = 0; i < classes.length; i++)
 		{
 			classes[i].height = classes[i].nLines * classes[i].scale;
-			classes[i].width = 50;//default can change this in some ways idk yet
+			classes[i].width = 10;//default can change this in some ways idk yet
 		}
 		return classes;
 	}
 
 	public async showClassInfo(){
 		const content = await this.getNamesAndSize();//need to set height and width based of a scale 
-		this.sortClassesArray(content);
+		//this.sortClassesArray(content);
 		this.setSize(content);
 		this.setCoords(content);
 		const jsonText = JSON.stringify(content);
@@ -251,18 +242,6 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 		}
 	}
 
-	//dont need this cus will be done by button in ui instead of command
-	public async showNames() {
-		if (this._view) {
-			this._view.webview.postMessage({ type: 'showNames', content: await this.getNames() });
-		}
-	}
-	//dont need this ||
-	public async showNumber() {
-		if (this._view) {
-			this._view.webview.postMessage({ type: 'showNumber', content: [ await this.getNumberOfFiles()] });
-		}
-	}
 	private _getHtmlForWebview(webview: vscode.Webview) {
 		// Get the local path to main script run in the webview, then convert it to a uri we can use in the webview.
 		const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'main.js'));
@@ -314,7 +293,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 }
 export function deactivate() {}
 
-
+//This comes with vscode webview extensions and is published by microsoft under the MIT licence
 function getNonce() {
 	let text = '';
 	const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

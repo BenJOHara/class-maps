@@ -37,38 +37,43 @@
         //add to ul class list
         vscode.postMessage({type: 'getClassInfo'});
     }
-    
-    function clearClassInfo()
-    {
-        const ul = document.querySelector('.svg1');
-        ul.textContent = '';
-    }
 
     //from a child finds the start and end of the line between parent and child
     function findStartAndEnd(c)
     {
+        
+
+        //parent exists
+        //find x
+        if (c.parentType !== undefined)
+        {
+            let pX = c.parentType.x + 0.5* c.parentType.width;
+            let pY = c.parentType.y + c.parentType.height;
+
+            let cX = c.x + 0.5 * c.width;
+            let cY = c.y;
+
+            return [[pX, pY],[cX,cY]];
+        }
+
         if (c.parent.length === 0)
         {
             return [[0,0],[0,0]];//if no parent draw a line from 0,0 to 0,0 idk what happens if u do this i assume no line
         }
+        else {
+            //parent was undefined
+            return [[0,0],[0,0]];//this should be changed
+        }
 
-        //parent exists
-        //find x
-        let pX = c.parentType.x + 0.5* c.parentType.width;
-        let pY = c.parentType.y + c.parentType.height;
+        
 
-        let cX = c.x + 0.5 * c.width;
-        let cY = c.y;
-
-
-        return [[pX, pY],[cX,cY]];
     }
 
     function setLine(c)
     {
-        console.log(c);
+        //console.log(c);
         let startAndEnd = findStartAndEnd(c);
-        console.log(startAndEnd);
+        //console.log(startAndEnd);
         if (startAndEnd === [[0,0],[0,0]])
         {
             return;
@@ -94,6 +99,10 @@
         const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
 
         //position in SVG
+        if (c.x === 0 && c.y === 0)//this is because some classes inherit from external classes
+        {
+            console.log("placing at 0,0", c);
+        }
         rect.setAttributeNS(null, 'x', c.x.toString());
         rect.setAttributeNS(null, 'y', c.y.toString());
 
@@ -107,7 +116,14 @@
         
         //CSS of rect and cursor
         rect.setAttributeNS(null, 'cursor', 'pointer');
-        rect.setAttributeNS(null, 'fill', 'white');
+
+        let fill = 'white';
+        if (c.external)
+        {
+            fill = 'LightBlue';
+        }
+
+        rect.setAttributeNS(null, 'fill', fill);
         rect.setAttributeNS(null, 'stroke', 'red');
 
         //const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
@@ -124,7 +140,7 @@
             rect.setAttributeNS(null, 'stroke', 'white');
         };
         rect.onmouseout = function(){
-            rect.setAttributeNS(null, 'fill', 'white');
+            rect.setAttributeNS(null, 'fill', fill);
             rect.setAttributeNS(null, 'stroke', 'red');
         };
 

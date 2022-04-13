@@ -16,7 +16,7 @@ export class ClassTree {
         const addedClasses: ClassNode[] = [];
         for (let i = 0; i < classes.length; i++) {
             if (classes[i].parent === topNode.c.name && keys.indexOf(i) !== -1) {
-                console.log("adding " + classes[i].name + " as child of " + topNode.c.name);
+                //console.log("adding " + classes[i].name + " as child of " + topNode.c.name);
                 addedClasses.push(topNode.addChild(classes[i], level));
                 keys.splice(keys.indexOf(i), 1);
             }

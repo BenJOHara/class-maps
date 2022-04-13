@@ -23,6 +23,7 @@ export class ClassForest{
                 this.addTree(classes[i]);
                 keys.splice(keys.indexOf(i), 1);//remove parent from classes array
             }
+            //else if ()//need to work out if external class
         }
         //now go per parent recursivly
         for (let i = 0; i < this.trees.length; i++)
@@ -33,11 +34,28 @@ export class ClassForest{
     }
 
 
+    public sortIfChildren()
+    {
+        const sortedTrees : ClassTree[] = [];
+        for (let i = 0; i < this.trees.length; i++)
+        {
+            if (this.trees[i].root.children.length > 0)
+            {
+                sortedTrees.unshift(this.trees[i]);
+            }
+            else 
+            {
+                sortedTrees.push (this.trees[i]);
+            }
+        }
+        this.trees = sortedTrees;
+    }
+
     //Tells the tree the top right corner that it can be in
     public setCoords()
     {
         //first tree start at 0, dont care about y not that is for the tree
-        const buffer : number = 20;
+        const buffer : number = 5;
         let x = 0;
         for (let i = 0; i < this.trees.length; i++)
         {
