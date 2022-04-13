@@ -15,15 +15,6 @@
     /** @type {Array<{ value: string }>} */
     let content = oldState.content;
 
-    //updateColorList(colors);
-
-    document.querySelector('.show-names').addEventListener('click', () => {
-        showNames();
-    });
-
-    document.querySelector('.show-number').addEventListener('click', () => {
-        showNumber();
-    });
 
     document.querySelector('.show-class-info').addEventListener('click', () => {
         showClassInfo();
@@ -33,16 +24,6 @@
     window.addEventListener('message', event => {
         const message = event.data; // The json data that the extension sent
         switch (message.type) {
-            case 'showNames':
-                {
-                    updateClassList(message.content);
-                    break;
-                }
-            case 'showNumber':
-                {
-                    updateNumberOfClasses(message.content);
-                    break;
-                }
             case 'showClassInfo':
                 {
                     updateClassInfo(message.content);
@@ -55,37 +36,6 @@
         //get names
         //add to ul class list
         vscode.postMessage({type: 'getClassInfo'});
-    }
-
-    function showNames() {
-        //get names
-        //add to ul class list
-        vscode.postMessage({type: 'getNames'});
-    }
-
-    function showNumber(){
-        //get number of classes
-        //add to ul class list as one item
-        vscode.postMessage({type : 'getNumber'});
-    }
-
-
-    function updateClassList(content)
-    {
-        clearClassInfo();
-        clearNumberOfClasses();
-        const ul = document.querySelector('.class-list');
-        ul.textContent = '';
-        for (const cont of content){
-            const li = document.createElement('li');
-            li.className = 'class-entry';
-
-            const text = document.createElement('p');
-            text.innerText = cont;
-            li.appendChild(text);
-            ul.appendChild(li);
-        }
-        vscode.setState({ content: content });
     }
     
     function clearClassInfo()
@@ -138,6 +88,7 @@
 
     }
 
+    //
     function setRect(c)
     {
         const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -229,23 +180,6 @@
      * 
      * @param {number} numberClasses 
      */
-    function updateNumberOfClasses(numberClasses)
-    {
-        clearClassInfo();
-        clearClassList();
-        const ul = document.querySelector('.svg1');
-        ul.textContent = '';
-        ul.setAttributeNS(null, 'width', '500');
-        ul.setAttributeNS(null, 'height', '3000');
-        let height = 100 * numberClasses;
-        //<rect width="300" height="100" style="fill:rgb(0,0,255;);stroke-width:3;stroke:rgb(0,0,0)"/>;
-        const li = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        li.setAttributeNS(null, 'width', '100');
-
-        li.setAttributeNS(null, 'height', height.toString());
-        ul.appendChild(li);
-        vscode.setState({content: content});
-    }
 
 }());
 

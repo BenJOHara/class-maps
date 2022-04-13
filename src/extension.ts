@@ -274,7 +274,11 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 
 		// Use a nonce to only allow a specific script to be run.
 		const nonce = getNonce();
-
+		/*
+		
+				<button class="show-names">Show class names</button>
+				<button class="show-number">Show number of classes</button>
+		*/
 		return `<!DOCTYPE html>
 			<html lang="en">
 			<head>
@@ -295,8 +299,6 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 				<title>Class Map</title>
 			</head>
 			<body>
-				<button class="show-names">Show class names</button>
-				<button class="show-number">Show number of classes</button>
 				<button class="show-class-info">Show classes and their sizes</button>
 				<div class="svgDiv">
 					<svg class="svg1" width="0" height="0">
