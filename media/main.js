@@ -33,8 +33,6 @@
     });
 
     function showClassInfo() {
-        //get names
-        //add to ul class list
         vscode.postMessage({type: 'getClassInfo'});
     }
 
@@ -114,12 +112,22 @@
         rect.setAttributeNS(null, 'height', c.height.toString());
         rect.setAttributeNS(null, 'width', c.width.toString());//
         
+        let fill = 'white';
+
+        if (c.height === 0 || c.width === 0)
+        {
+            rect.setAttributeNS(null, 'height', '20');
+            rect.setAttributeNS(null, 'width', '10');//
+            console.log ("not seen", c);
+            fill = 'red';
+        }
+
         //CSS of rect and cursor
         rect.setAttributeNS(null, 'cursor', 'pointer');
 
-        let fill = 'white';
         if (c.external)
         {
+            console.log("external" , c);
             fill = 'LightBlue';
         }
 
@@ -156,26 +164,33 @@
         clearClassList();
         let prevX = 0;
         const classes = JSON.parse(classInfo);
-        const ul = document.querySelector('.svg1');
-        ul.textContent = '';
+        const svg = document.querySelector('.svg1');
+        svg.textContent = '';
 
         
 
-        ul.setAttributeNS(null, 'width', '20000');
-        ul.setAttributeNS(null, 'height', '2000');
+        svg.setAttributeNS(null, 'width', '20000');
+        svg.setAttributeNS(null, 'height', '2000');
         
+        let svgWidth = 0;
         //console.log(window.screen.availWidth.toString(), window.screen.availHeight.toString(), window.screen.height, window.screen.width);
 
         //console.log(classes);
         for (let i = 0; i < classes.length; i++)
         {
+            if (svgWidth < (classes[i].x+ classes[i].hiddenWidth))
+            {
+                svgWidth = classes[i].x + classes[i].hiddenWidth;
+            }
             const rect = setRect(classes[i]);
             const line = setLine(classes[i]);
             const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
             title.textContent = "test";
-            ul.appendChild(rect);
-            ul.appendChild(line);
+            svg.appendChild(rect);
+            svg.appendChild(line);
         }
+        console.log(svgWidth);
+        svg.setAttributeNS(null, 'width', svgWidth.toString());
         vscode.setState({ content: content });
 
     }

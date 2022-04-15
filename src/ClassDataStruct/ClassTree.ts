@@ -96,6 +96,7 @@ export class ClassTree {
         if (p.children.length === 0)//no children
         {
             p.hiddenWidth = p.c.width;
+            p.c.hiddenWidth = p.c.width;
         }
         else 
         {
@@ -106,6 +107,7 @@ export class ClassTree {
             for (let i = 0; i < p.children.length; i++) 
             {
                 p.hiddenWidth = p.hiddenWidth + p.children[i].hiddenWidth;
+                p.c.hiddenWidth = p.hiddenWidth + p.children[i].hiddenWidth;
             }
         }
     }

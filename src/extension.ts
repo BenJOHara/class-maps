@@ -88,7 +88,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 		let startOfClass : number = 0;
 		//TODO: assign -/name, -/length, -/width, -/uri, -/parent, this second --> hasClasses, usesClasses
 		tokens.forEach( (token, i) => token.t.forEach( (t, j) => {
-			if (t === 'class')
+			if (t === 'class' && token.t[j-1] !== '.' && !classFound) //this !classfound means i dont care about nested classes
 			{
 				startOfClass = j;
 				numberOfClasses++;
@@ -105,7 +105,10 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 				{
 					console.log();
 				}
-				classes[numberOfClasses - 1].parent = token.t[j + 1];// -1 as zero index and j+ 1 cus class name is next token
+				else {
+					classes[numberOfClasses - 1].parent = token.t[j + 1];// -1 as zero index and j+ 1 cus class name is next token
+				}
+
 			}
 			else if (t === '{')
 			{
@@ -130,13 +133,12 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 				braceFound = false;
 				lineCount = 0;
 			}
-
 		}));
 		//console.log(classes);
 
 		for (let i = 0; i < classes.length; i++)
 		{
-			if (!this.doesParentExist(classes, classes[i].parent))
+			if (!this.doesParentExist(classes, classes[i].parent) && classes[i].parent !== "")
 			{
 				// we must create this parent 
 				const c = new ClassType();
@@ -279,7 +281,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 			</head>
 			<body>
 				<button class="show-class-info">Show classes and their sizes</button>
-				<div class="svgDiv">
+				<div class="svgDiv" style="border:3px solid green;width:100px;height:100px;overflow:scroll;">
 					<svg class="svg1" width="0" height="0">
 					</svg>
 				</div>

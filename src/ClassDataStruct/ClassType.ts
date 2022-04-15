@@ -7,6 +7,7 @@ export class ClassType{
 
     nTokens:number = 0;//number of tokens that the class has
 
+	hiddenWidth = 0;
 
 	uri:vscode.Uri;
 
