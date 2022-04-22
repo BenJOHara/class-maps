@@ -62,7 +62,7 @@ export class ClassTree {
 
     //depth first traversal
     private setY(root: ClassNode, depth: number) {
-        const buffer : number = 5;
+        const buffer : number = 10;
         let p = root;
         p.c.y = depth;
         depth += p.c.height + buffer;

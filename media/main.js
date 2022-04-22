@@ -154,25 +154,60 @@
 
         return rect;
     }
-    
-    function setText(c)
+
+    function setName(name, x, y)
     {
         const text = document.createElementNS("http://www.w3.org/2000/svg", 'text');
-        
-        if (c.name.length < 7)
+        let sub = false;
+        if (name.length === 1)
         {
-            text.textContent = c.name;
+            text.textContent = name;
+        }
+        else if (name === '...')
+        {
+            text.textContent = name;
+            sub = true;
         }
         else
         {
-            text.textContent = c.name.substring(0,5) + "...";
+            text.textContent = name.substring(0,1);
+            sub = true;
         }
-        text.setAttributeNS(null, 'font', '20pt Courier');
+        text.setAttributeNS(null, 'font-family', 'Courier');
         text.setAttributeNS(null, 'fill', 'black');
-        text.setAttributeNS(null, 'x', c.x.toString());
-        text.setAttributeNS(null, 'y', (c.y + 12).toString());
+        text.setAttributeNS(null, 'x', x.toString());
+        text.setAttributeNS(null, 'y', y.toString());
 
-        return text;
+        return [text, sub];
+    }
+    
+    function setText(c)
+    {
+        const g = document.createElementNS("http://www.w3.org/2000/svg", 'g');
+        let name = c.name;
+        let x = c.x;
+        let y = c.y + 10;
+        while (name.length !== 0)
+        {
+            if (y + 10 > c.y + c.height)
+            {
+                const text = setName('...', x, y);
+                g.appendChild(text[0]);
+                break;
+            }
+            const text = setName(name, x, y);
+            g.appendChild(text[0]);
+            if (text[1])
+            {
+                y = y + 10;
+                name = name.substring(1);
+            }
+            else 
+            {
+                break;
+            }
+        } 
+        return g;
     }
 
     function updateClassInfo(classInfo)

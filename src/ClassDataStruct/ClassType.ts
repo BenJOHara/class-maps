@@ -34,11 +34,6 @@ export class ClassType{
 
 	external:boolean = false;
 
-	constructor()
-	{
-		let a = 2;
-	}
-
 	public setParentType(c: ClassType){
 		this.parentType = c;
 	}

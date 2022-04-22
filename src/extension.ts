@@ -144,7 +144,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 				const c = new ClassType();
 				c.name = classes[i].parent;
 				c.nTokens = 50;
-				c.nLines = 50;
+				c.nLines = 55;
 				c.external = true;
 				classes.push(c);
 			}
@@ -225,10 +225,11 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 
 	private setSize(classes: ClassType[])
 	{
+		const maxWidth = 25;
 		for (let i : number = 0; i < classes.length; i++)
 		{
 			classes[i].height = classes[i].nLines * classes[i].scale;
-			classes[i].width = 40;//default can change this in some ways idk yet
+			classes[i].width = maxWidth;//default can change this in some ways idk yet
 		}
 		return classes;
 	}
