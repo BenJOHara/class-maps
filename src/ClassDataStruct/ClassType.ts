@@ -2,17 +2,16 @@ import * as vscode from 'vscode';
 
 export class ClassType{
 	name:string = '';
+	parent:string = '';
+	uri:vscode.Uri;
 
 	nLines:number = 0;//number of lines of code that make up the class
-
     nTokens:number = 0;//number of tokens that the class has
 
 	hiddenWidth = 0;
 
-	uri:vscode.Uri;
 
 	//inheritence
-	parent:string = '';
 
 	parentType: ClassType;
 
@@ -31,13 +30,13 @@ export class ClassType{
 
 	//bottom middle = width + 1/2 * x,height + y
 
-	scale:number = 1;
+	scale:number = 2;
 
 	external:boolean = false;
 
 	constructor()
 	{
-
+		let a = 2;
 	}
 
 	public setParentType(c: ClassType){

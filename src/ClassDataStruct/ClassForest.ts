@@ -4,16 +4,18 @@ import { ClassType } from "./ClassType";
 export class ClassForest{
     trees : ClassTree [] = [];
 
-    constructor()
+    constructor(classes :ClassType[])
     {
-
+        this.createForest(classes);
     }
+
+    //adds tree to the array of trees
     public addTree(c : ClassType)
     {
         this.trees.push(new ClassTree(c));
     }
 
-    public createForest(classes : ClassType [])
+    private createForest(classes : ClassType [])
     {
         const keys : number [] = [...classes.keys()];
         for (let i = 0; i < classes.length; i++)

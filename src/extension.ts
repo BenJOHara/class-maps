@@ -86,9 +86,9 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 		let braceTally : number = 0;
 		let lineCount : number = 0;
 		let startOfClass : number = 0;
-		//TODO: assign -/name, -/length, -/width, -/uri, -/parent, this second --> hasClasses, usesClasses
-		tokens.forEach( (token, i) => token.t.forEach( (t, j) => {
-			if (t === 'class' && token.t[j-1] !== '.' && !classFound) //this !classfound means i dont care about nested classes
+		
+		tokens.forEach( (token, i) => token.t.forEach( (t, j) => {//iterate through all tokens in order
+			if (t === 'class' && token.t[j-1] !== '.' && !classFound) //this !classfound means i dont care about nested classes i could change this to make them a different colour but idk if i want to
 			{
 				startOfClass = j;
 				numberOfClasses++;
@@ -212,8 +212,8 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 
 	private setCoords(classes: ClassType[])
 	{	
-		const forest = new ClassForest();
-		forest.createForest(classes);//ahaha this worked first time nice :) it didnt really but almost did 
+		const forest = new ClassForest(classes);
+	
 		//console.log(forest.trees);
 		forest.sortIfChildren();
 	
@@ -228,7 +228,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 		for (let i : number = 0; i < classes.length; i++)
 		{
 			classes[i].height = classes[i].nLines * classes[i].scale;
-			classes[i].width = 10;//default can change this in some ways idk yet
+			classes[i].width = 40;//default can change this in some ways idk yet
 		}
 		return classes;
 	}

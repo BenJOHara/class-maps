@@ -63,8 +63,6 @@
             return [[0,0],[0,0]];//this should be changed
         }
 
-        
-
     }
 
     function setLine(c)
@@ -157,6 +155,25 @@
         return rect;
     }
     
+    function setText(c)
+    {
+        const text = document.createElementNS("http://www.w3.org/2000/svg", 'text');
+        
+        if (c.name.length < 7)
+        {
+            text.textContent = c.name;
+        }
+        else
+        {
+            text.textContent = c.name.substring(0,5) + "...";
+        }
+        text.setAttributeNS(null, 'font', '20pt Courier');
+        text.setAttributeNS(null, 'fill', 'black');
+        text.setAttributeNS(null, 'x', c.x.toString());
+        text.setAttributeNS(null, 'y', (c.y + 12).toString());
+
+        return text;
+    }
 
     function updateClassInfo(classInfo)
     {
@@ -184,10 +201,11 @@
             }
             const rect = setRect(classes[i]);
             const line = setLine(classes[i]);
-            const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-            title.textContent = "test";
+            const text = setText(classes[i]);
+
             svg.appendChild(rect);
             svg.appendChild(line);
+            svg.appendChild(text);
         }
         console.log(svgWidth);
         svg.setAttributeNS(null, 'width', svgWidth.toString());
@@ -206,11 +224,6 @@
         const ul = document.querySelector('.svg1');
         ul.textContent = '';
     }
-
-    /**
-     * 
-     * @param {number} numberClasses 
-     */
 
 }());
 
