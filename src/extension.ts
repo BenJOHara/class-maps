@@ -5,37 +5,36 @@ import { Tokenizer } from './Tokenizer';
 import { Tokens } from './Tokens';
 
 export function activate(context: vscode.ExtensionContext) {
-	
+
 	console.log('class-maps is now active');
 
 	const provider = new ClassViewProvider(context.extensionUri);
 
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(ClassViewProvider.viewType, provider));
-	
+
 	context.subscriptions.push(
-		vscode.commands.registerCommand('class-maps.show-class-info', () =>{
-			
+		vscode.commands.registerCommand('class-maps.show-class-info', () => {
+
 		}));
 	console.log("end activate Start");
 }
 
-class ClassViewProvider implements vscode.WebviewViewProvider{
+class ClassViewProvider implements vscode.WebviewViewProvider {
 
 	public static readonly viewType = 'class-maps.map-view';
-	
+
 	private _view?: vscode.WebviewView;
 
 	constructor(
 		private readonly _extensionUri: vscode.Uri,
 	) { }
 
-	public resolveWebviewView(		
+	public resolveWebviewView(
 		webviewView: vscode.WebviewView,
 		context: vscode.WebviewViewResolveContext,
 		_token: vscode.CancellationToken,
-	)
-	{
+	) {
 		this._view = webviewView;
 
 		webviewView.webview.options = {
@@ -45,9 +44,8 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 
 		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-		webviewView.webview.onDidReceiveMessage(async data=>{
-			switch (data.type)
-			{
+		webviewView.webview.onDidReceiveMessage(async data => {
+			switch (data.type) {
 				case 'getClassInfo':
 					{
 						await this.showClassInfo();
@@ -55,91 +53,119 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 					}
 				case 'openWindow':
 					{
-						const page : vscode.TextDocument = await vscode.workspace.openTextDocument(data.content.fsPath);
+						const page: vscode.TextDocument = await vscode.workspace.openTextDocument(data.content.fsPath);
 						await vscode.window.showTextDocument(page);
 					}
 			}
 		});
 	}
 
-	private async getFiles()
-	{
-		const files : vscode.Uri[]= await vscode.workspace.findFiles('**/*.java');
+	private async getFiles() {
+		const files: vscode.Uri[] = await vscode.workspace.findFiles('**/*.java');
 		return files;
 	}
 
 	private async getNamesAndSize() {
+		const basicType : string[] = [ "boolean", "byte", "char", "double", "float", "int", "long", "short"];
 		const uris = await this.getFiles();
-		const classes : ClassType[] = [];
-		const files : vscode.TextDocument[] = [];
-		for (const uri of uris)
-		{
+		const classes: ClassType[] = [];
+		const files: vscode.TextDocument[] = [];
+		for (const uri of uris) {
 			const file = await vscode.workspace.openTextDocument(uri);
 			files.push(file);
 		}
 
-		const tokenizer : Tokenizer = new Tokenizer(files);
-		const tokens : Tokens [] = tokenizer.getTokens();
+		const tokenizer: Tokenizer = new Tokenizer(files);
+		const tokensAll: Tokens[] = tokenizer.getTokens();
 		let numberOfClasses = 0;
-		let classFound : boolean = false;
-		let braceFound : boolean = false;
-		let braceTally : number = 0;
-		let lineCount : number = 0;
-		let startOfClass : number = 0;
-		
-		tokens.forEach( (token, i) => token.t.forEach( (t, j) => {//iterate through all tokens in order
-			if (t === 'class' && token.t[j-1] !== '.' && !classFound) //this !classfound means i dont care about nested classes i could change this to make them a different colour but idk if i want to
-			{
-				startOfClass = j;
-				numberOfClasses++;
-				classFound = true;
-				classes[numberOfClasses - 1] = new ClassType();
-				classes[numberOfClasses - 1].uri = token.uri;
-				classes[numberOfClasses - 1].name = token.t[j + 1];
-				
-			}
-			else if (t === 'extends') 
-			{
-				//has parent
-				if (classes[numberOfClasses - 1] === undefined)
+		let classFound: boolean = false;
+		let braceFound: boolean = false;
+		let braceTally: number = 0;
+		let lineCount: number = 0;
+		let startOfClass: number = 0;
+		tokensAll.forEach((tokens, i) => {
+			const dependsOn: string[] = [];
+			const classesUsed : string [] = [];
+			const accourances : number [] = [];
+			tokens.t.forEach((t, j) => {//iterate through all tokens in order
+				if (t === 'class' && tokens.t[j - 1] !== '.' && !classFound) //this !classfound means i dont care about nested classes i could change this to make them a different colour but idk if i want to
 				{
-					console.log();
+					startOfClass = j;
+					numberOfClasses++;
+					classFound = true;
+					classes[numberOfClasses - 1] = new ClassType();
+					classes[numberOfClasses - 1].uri = tokens.uri;
+					classes[numberOfClasses - 1].name = tokens.t[j + 1];
 				}
-				else {
-					classes[numberOfClasses - 1].parent = token.t[j + 1];// -1 as zero index and j+ 1 cus class name is next token
+				else if (t === 'import')//if this then all classes in this file depend on token.t[j + 1]
+				{
+					console.log(tokens.t[j + 1]);
+					dependsOn.push(tokens.t[j + 1]);
 				}
+				else if (t === 'new')
+				{
+					let index = classesUsed.indexOf(tokens.t[j+1]) ;
+					if (index !== -1)
+					{
+						accourances[index]++;
+					}
+					else 
+					{
+						classesUsed.push(tokens.t[j+1]);
+						accourances.push(1);
+					}
+				}
+				else if (t === 'extends') {
+					//has parent
+					if (classes[numberOfClasses - 1] === undefined) {
+						console.log();
+					}
+					else {
+						classes[numberOfClasses - 1].parent = tokens.t[j + 1];// -1 as zero index and j+ 1 cus class name is next token
+					}
 
-			}
-			else if (t === '{')
-			{
-				braceFound = true;
-				braceTally++;
-			}
-			else if (t === '}')
-			{
-				braceTally = braceTally - 1;
-			}
-			else if (t === '\n')
-			{
-				lineCount++;
-			}
-			if (braceTally === 0 && braceFound && classFound)
-			{
-				classes[numberOfClasses - 1].nLines = lineCount;
-				classes[numberOfClasses - 1].nTokens = j - startOfClass;
-				//console.log(classes[numberOfClasses - 1].name, lineCount, j - startOfClass);
-				//end of a class should have all info
-				classFound = false;
-				braceFound = false;
-				lineCount = 0;
-			}
-		}));
+				}
+				else if (t === '{') {
+					braceFound = true;
+					braceTally++;
+				}
+				else if (t === '}') {
+					braceTally = braceTally - 1;
+				}
+				else if (t === '\n') {
+					lineCount++;
+				}
+				else{
+					if (basicType.indexOf(t) === -1)
+					{
+						let index = classesUsed.indexOf(tokens.t[j+1]);
+						if (index !== -1)
+						{
+							accourances[index]++;
+						}
+						else 
+						{
+							classesUsed.push(tokens.t[j+1]);
+							accourances.push(1);
+						}
+					}
+				}
+				if (braceTally === 0 && braceFound && classFound) {//
+					classes[numberOfClasses - 1].nLines = lineCount;
+					classes[numberOfClasses - 1].nTokens = j - startOfClass;
+					classes[numberOfClasses - 1].dependsOn = dependsOn;
+					//console.log(classes[numberOfClasses - 1].name, lineCount, j - startOfClass);
+					//end of a class should have all info
+					classFound = false;
+					braceFound = false;
+					lineCount = 0;
+				}
+			});
+		});
 		//console.log(classes);
 
-		for (let i = 0; i < classes.length; i++)
-		{
-			if (!this.doesParentExist(classes, classes[i].parent) && classes[i].parent !== "")
-			{
+		for (let i = 0; i < classes.length; i++) {
+			if (!this.doesParentExist(classes, classes[i].parent) && classes[i].parent !== "") {
 				// we must create this parent 
 				const c = new ClassType();
 				c.name = classes[i].parent;
@@ -153,12 +179,9 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 		return classes;
 	}
 
-	private doesParentExist(classes : ClassType[], parent : string)
-	{
-		for (let i = 0; i < classes.length; i++)
-		{
-			if (classes[i].name === parent)
-			{
+	private doesParentExist(classes: ClassType[], parent: string) {
+		for (let i = 0; i < classes.length; i++) {
+			if (classes[i].name === parent) {
 				return true;
 			}
 		}
@@ -166,30 +189,24 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 	}
 
 
-	private sortClassesArray(classes : ClassType []) : ClassType[]
-	{
-		const a1 : ClassType[] = [];
-		const a2 : ClassType[] = [];
+	private sortClassesArray(classes: ClassType[]): ClassType[] {
+		const a1: ClassType[] = [];
+		const a2: ClassType[] = [];
 
-		if (classes.length === 1)
-		{
+		if (classes.length === 1) {
 			return classes;
 		}
-		else if (classes.length === 0)
-		{
+		else if (classes.length === 0) {
 			return [];
 		}
-		else 
-		{
+		else {
 			const pivot = classes[0];
-			for (let i = 1; i < classes.length; i++)
-			{
+			for (let i = 1; i < classes.length; i++) {
 				if (this.compareClasses(pivot, classes[i]))//true if pivot smaller
 				{
 					a1.push(classes[i]);
 				}
-				else
-				{
+				else {
 					a2.push(classes[i]);
 				}
 			}
@@ -198,43 +215,37 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 
 	}
 
-	private compareClasses(a : ClassType, b : ClassType)
-    {
-        if (a.nLines < b.nLines)
-        {
-            return true;
-        }
-        else 
-        {
-            return false;
-        }
-    }
+	private compareClasses(a: ClassType, b: ClassType) {
+		if (a.nLines < b.nLines) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
 
-	private setCoords(classes: ClassType[])
-	{	
+	private setCoords(classes: ClassType[]) {
 		const forest = new ClassForest(classes);
-	
+
 		//console.log(forest.trees);
 		forest.sortIfChildren();
-	
+
 
 
 		forest.setCoords();
 		return classes;
 	}
 
-	private setSize(classes: ClassType[])
-	{
+	private setSize(classes: ClassType[]) {
 		const maxWidth = 25;
-		for (let i : number = 0; i < classes.length; i++)
-		{
+		for (let i: number = 0; i < classes.length; i++) {
 			classes[i].height = classes[i].nLines * classes[i].scale;
 			classes[i].width = maxWidth;//default can change this in some ways idk yet
 		}
 		return classes;
 	}
 
-	public async showClassInfo(){
+	public async showClassInfo() {
 		const content = await this.getNamesAndSize();//need to set height and width based of a scale 
 		//this.sortClassesArray(content);
 		this.setSize(content);
@@ -294,7 +305,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 			</html>`;
 	}
 }
-export function deactivate() {}
+export function deactivate() { }
 
 //This comes with vscode webview extensions and is published by microsoft under the MIT licence
 function getNonce() {

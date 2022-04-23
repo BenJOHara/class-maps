@@ -83,10 +83,8 @@
         line.setAttributeNS(null, 'y2', startAndEnd[1][1].toString());
 
         line.setAttributeNS(null, 'stroke-width', '1');
-
         line.setAttributeNS(null, 'stroke', 'red');
         return line;
-
     }
 
     //
@@ -178,7 +176,7 @@
         text.setAttributeNS(null, 'x', x.toString());
         text.setAttributeNS(null, 'y', y.toString());
 
-        return [text, sub];
+        return {text, sub};
     }
     
     function setText(c)
@@ -192,12 +190,12 @@
             if (y + 10 > c.y + c.height)
             {
                 const text = setName('...', x, y);
-                g.appendChild(text[0]);
+                g.appendChild(text.text);
                 break;
             }
             const text = setName(name, x, y);
-            g.appendChild(text[0]);
-            if (text[1])
+            g.appendChild(text.text);
+            if (text.sub)
             {
                 y = y + 10;
                 name = name.substring(1);

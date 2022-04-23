@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { Token } from './Token';
 import { Tokens } from './Tokens';
 
 //take all workspace files
@@ -15,7 +16,7 @@ export class Tokenizer {
         {
             //console.log( files[i].fileName, "FILE NAME");
             const done = this.tokenize(files[i].getText());
-            const token = new Tokens(done.tokens, files[i].uri, done.lineCount);
+            const token = new Tokens(done.tokens, files[i].uri, done.lineCount, done.tokenProper);
             //console.log( files[i].fileName, "tokens found", token.lines, token.t.length);
             this.tokens.push(token);
         }
@@ -55,8 +56,10 @@ export class Tokenizer {
 
 
     private tokenize(text:string) {
+        
         let lineCount: number = 0;
         let tokens: string[] = [];
+        let tokenProper : Token[] = [];
         const chars = [...text];
         //last space/;
         //collapes spaces
@@ -88,6 +91,7 @@ export class Tokenizer {
                 }
                 s = s + chars[i];
                 tokens.push(s);
+                tokenProper.push(new Token(s, 0));
             }
             else if (chars[i] === '\'') {//strings
                 let s: string = chars[i];
@@ -98,6 +102,7 @@ export class Tokenizer {
                 }
                 s = s + chars[i];
                 tokens.push(s);
+                tokenProper.push(new Token(s, 0));
             }
             else if ((/[a-zA-Z_$]/).test(chars[i])) {//ids 
                 let s: string = chars[i];
@@ -108,7 +113,8 @@ export class Tokenizer {
                     i++;
                 }
                 i--;
-                tokens.push(s);//may need to add here to check if is keyword from above
+                tokens.push(s);
+                tokenProper.push(new Token(s, 1));//may need to add here to check if is keyword from above
             }
             else if ((/[0-9]/).test(chars[i])) {//numbers
                 let s: string = chars[i];
@@ -119,9 +125,11 @@ export class Tokenizer {
                 }
                 i--;
                 tokens.push(s);
+                tokenProper.push(new Token(s, 2));
             }
             else if (chars[i] === '\n') {//newlines
                 tokens.push(chars[i]);
+                tokenProper.push(new Token(chars[i], 3));
                 lineCount++;
             }
             else//i dont care about anything else
@@ -135,9 +143,10 @@ export class Tokenizer {
                 }
                 else {
                     tokens.push(s);
+                    tokenProper.push(new Token(s, -1));
                 }
             }
         }
-        return {tokens, lineCount};
+        return {tokens, lineCount, tokenProper};
     }
 }

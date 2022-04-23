@@ -12,7 +12,6 @@ export class ClassType{
 
 
 	//inheritence
-
 	parentType: ClassType;
 
 	//a part of the class is this class
@@ -20,6 +19,8 @@ export class ClassType{
 	
 	//this class is used in the class
 	usesClasses:string[] = [];
+	
+	dependsOn:string[] = [];
 
 	//for CSS
 	x:number = 0;
