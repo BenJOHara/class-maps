@@ -10,14 +10,13 @@ export class Tokenizer {
 
     private tokens: Tokens[] = [];
 
+    //takes array of files and iterates through them adding them all to an array of Tokens
     constructor(files : vscode.TextDocument []) 
     {
         for (let i = 0; i < files.length; i++)
         {
-            //console.log( files[i].fileName, "FILE NAME");
             const done = this.tokenize(files[i].getText());
             const token = new Tokens(done.tokens, files[i].uri, done.lineCount, done.tokenProper);
-            //console.log( files[i].fileName, "tokens found", token.lines, token.t.length);
             this.tokens.push(token);
         }
     }
@@ -28,7 +27,9 @@ export class Tokenizer {
     }
 
 
-    //will the next char in this string be esacped
+    //checks if the char that would appear after the string is escaped
+    // if text = '\' then true if text = '\\' false
+    //recursive 
     private isEscaped(text:string) : boolean
     {
         if (text.length === 1)
@@ -54,7 +55,7 @@ export class Tokenizer {
         }
     }
 
-
+    //from the text of a file, split into tokens, keep \n
     private tokenize(text:string) {
         
         let lineCount: number = 0;

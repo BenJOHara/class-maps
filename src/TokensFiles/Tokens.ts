@@ -11,6 +11,7 @@ export class Tokens{
 
     public lines : number;
 
+    
     constructor(tokens : string[], uri : vscode.Uri, lines: number, tokensProper:Token[])
     {
         this.t = tokens;
