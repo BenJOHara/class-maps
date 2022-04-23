@@ -1,9 +1,11 @@
 import * as vscode from 'vscode';
 import { ClassForest } from './ClassDataStruct/ClassForest';
 import { ClassType } from './ClassDataStruct/ClassType';
-import { Tokenizer } from './Tokenizer';
-import { Tokens } from './Tokens';
+import { Tokenizer } from './TokensFiles/Tokenizer';
+import { Tokens } from './TokensFiles/Tokens';
 
+
+//registers webview
 export function activate(context: vscode.ExtensionContext) {
 
 	console.log('class-maps is now active');
@@ -20,6 +22,8 @@ export function activate(context: vscode.ExtensionContext) {
 	console.log("end activate Start");
 }
 
+//sets webview settings
+//recieves message from main.js
 class ClassViewProvider implements vscode.WebviewViewProvider {
 
 	public static readonly viewType = 'class-maps.map-view';
@@ -60,12 +64,15 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 		});
 	}
 
+	//gets all files from workspace
 	private async getFiles() {
 		const files: vscode.Uri[] = await vscode.workspace.findFiles('**/*.java');
 		return files;
 	}
 
-	private async getNamesAndSize() {
+	//gets all classes as ClassTypes in the workspace
+	//
+	private async getClasses() {
 		const basicType : string[] = [ "boolean", "byte", "char", "double", "float", "int", "long", "short"];
 		const uris = await this.getFiles();
 		const classes: ClassType[] = [];
@@ -179,6 +186,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 		return classes;
 	}
 
+	//checks if a name exists in an array of classtypes
 	private doesParentExist(classes: ClassType[], parent: string) {
 		for (let i = 0; i < classes.length; i++) {
 			if (classes[i].name === parent) {
@@ -188,7 +196,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 		return false;
 	}
 
-
+	//sorts an array of classes by the compareClasses function
 	private sortClassesArray(classes: ClassType[]): ClassType[] {
 		const a1: ClassType[] = [];
 		const a2: ClassType[] = [];
@@ -215,6 +223,8 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 
 	}
 
+	//true if b has more lines then a
+	//else false
 	private compareClasses(a: ClassType, b: ClassType) {
 		if (a.nLines < b.nLines) {
 			return true;
@@ -224,18 +234,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 		}
 	}
 
-	private setCoords(classes: ClassType[]) {
-		const forest = new ClassForest(classes);
-
-		//console.log(forest.trees);
-		forest.sortIfChildren();
-
-
-
-		forest.setCoords();
-		return classes;
-	}
-
+	//sets the height and width of all classes
 	private setSize(classes: ClassType[]) {
 		const maxWidth = 25;
 		for (let i: number = 0; i < classes.length; i++) {
@@ -245,17 +244,25 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 		return classes;
 	}
 
+	//gets all the classes and then sets all the needed vars for classmapview
+	//sends the classtype data to the main.js
+	//
 	public async showClassInfo() {
-		const content = await this.getNamesAndSize();//need to set height and width based of a scale 
+		const content = await this.getClasses();//need to set height and width based of a scale 
 		//this.sortClassesArray(content);
 		this.setSize(content);
-		this.setCoords(content);
+
+		const forest = new ClassForest(content);
+		forest.sortIfChildren();
+		forest.setCoords();
+
 		const jsonText = JSON.stringify(content);
 		if (this._view) {
 			this._view.webview.postMessage({ type: 'showClassInfo', content: jsonText });
 		}
 	}
 
+	//
 	private _getHtmlForWebview(webview: vscode.Webview) {
 		// Get the local path to main script run in the webview, then convert it to a uri we can use in the webview.
 		const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'main.js'));
@@ -267,11 +274,6 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 
 		// Use a nonce to only allow a specific script to be run.
 		const nonce = getNonce();
-		/*
-		
-				<button class="show-names">Show class names</button>
-				<button class="show-number">Show number of classes</button>
-		*/
 		return `<!DOCTYPE html>
 			<html lang="en">
 			<head>
