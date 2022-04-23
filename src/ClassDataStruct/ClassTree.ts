@@ -12,6 +12,9 @@ export class ClassTree {
         return this.populate(classes, root, keys, 1);
     }
 
+    //populate the parent node
+    //then go though all children and call populate on them
+    //recursivly populating all child nodes from the root
     private populate(classes: ClassType[], topNode: ClassNode, keys: number[], level: number) {
         const addedClasses: ClassNode[] = [];
         for (let i = 0; i < classes.length; i++) {
@@ -26,7 +29,7 @@ export class ClassTree {
         }
     }
 
-    //recursive 
+    //if children 
     public setParentTypes(p : ClassNode)
     {
         if (p.children.length === 0)
@@ -35,10 +38,10 @@ export class ClassTree {
         }
         for (let i = 0; i < p.children.length; i++)
         {
-            const c = p.children[i];
-            c.parent.push(p);
-            c.c.parentType = p.c;
-            this.setParentTypes(p.children[i]);
+            const c : ClassNode = p.children[i];
+            c.parent.push(p);//sets parent node
+            c.c.parentType = p.c;//sets parent type in child type
+            this.setParentTypes(p.children[i]);//does it recursivly
         }
     }
 
@@ -52,7 +55,7 @@ export class ClassTree {
     public setCoords(leftHW : number) {
         //console.log("set Coords");
         this.setY(this.root, 0);//start at y = 0
-        this.setHiddenWidth(this.root, []);
+        this.setHiddenWidth(this.root);
         if (this.root.parent.length === 0){
             this.root.c.x = this.root.hiddenWidth / 2 + leftHW;
         }
@@ -72,25 +75,16 @@ export class ClassTree {
     }
 
 
-    private findZero(root : ClassNode)
-    {
-        let p : ClassNode = root;
-        while (p.children.length !== 0)
-        {
-            p = p.children[0];
-        }
-        p.c.x = 0;//
-        return p;
-    }
-
-
     //node : node that we are calc x for
     //lastX the relative x that the last childnode of the parent had
     //pX: the x of the parent.
     // pX - 1/2 parent.hiddenwidth + lastX will = the x of the prev child
-    
 
-    private setHiddenWidth (root: ClassNode, levelSum: number[])
+    //from root
+    //if no children then the hiddenwidth will just be the width of the root
+    //if there are children then we first must know all their hiddenwidths so calclute them by calling yourself
+    //then for all children set hiddenwidth to the sum of their hiddenwidths
+    private setHiddenWidth (root: ClassNode)
     {
         let p : ClassNode = root;
         if (p.children.length === 0)//no children
@@ -102,7 +96,7 @@ export class ClassTree {
         {
             for (let i = 0; i < p.children.length; i++) 
             {
-                this.setHiddenWidth(p.children[i], levelSum);
+                this.setHiddenWidth(p.children[i]);
             }
             for (let i = 0; i < p.children.length; i++) 
             {
@@ -112,7 +106,10 @@ export class ClassTree {
         }
     }
 
-    private findX(node : ClassNode, lastX : number, zerodX: number)
+    
+    //sets the x of the node based of the last x
+    //returns the next place where a node can start
+    private findX(node : ClassNode, lastX : number)
     {
         node.c.x = lastX + node.hiddenWidth * 0.5;//set x as the middle of your hidden width
         return lastX + node.hiddenWidth; //return the edge of your hidden width for the next child
@@ -120,19 +117,24 @@ export class ClassTree {
 
     //need to start at the bottom and go up
     // x of parent = sum of x of children - 1/2 * dif between x of c0 and cn
+
+    //The root node already knows its x
+    //Find the left most part of that x ie root.x - root.hiddenwidth/2 
+    //This is where the first child will start
+    //For every child place them based off the previous child
+    //For every child call setX to set their childrens x
     private setX(root: ClassNode, zerodX : number) {
-        let p = root;
+        let p : ClassNode = root;
         let x : number = p.c.x - p.hiddenWidth * 0.5;
-        p = root;
+
         if (p.children.length !== 0)
         {
             for (let i = 0; i < p.children.length; i++) 
             {
-                x = this.findX(p.children[i], x, zerodX);
-            }//
+                x = this.findX(p.children[i], x);
+            }
             for (let i = 0; i < p.children.length; i++) 
             {
-                //console.log(p.c.x - 0.5 * p.hiddenWidth);
                 this.setX(p.children[i], zerodX);
             }
         }

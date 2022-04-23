@@ -21,6 +21,7 @@ export class ClassNode{
     }
 
     //returns the node of the child
+    //adds a new child by its ClassType and creates it a node
     public addChild(c : ClassType, level:number)
     {
         this.children.push(new ClassNode(c, level, this));
@@ -28,6 +29,7 @@ export class ClassNode{
         return this.children[this.children.length - 1];
     }
 
+    //explains its self
     public calcTallestChild()
     {
         let tallest = this.children[0].c.height;

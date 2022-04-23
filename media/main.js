@@ -11,7 +11,7 @@
     /** @type {Array<{ value: string }>} */
     let content = oldState.content;
 
-
+    //listens for when the button is clicked
     document.querySelector('.show-class-info').addEventListener('click', () => {
         showClassInfo();
     });
@@ -27,11 +27,12 @@
         }
     });
 
+    //tells the extension that the button has been pressed
     function showClassInfo() {
         vscode.postMessage({type: 'getClassInfo'});
     }
 
-    //from a child finds the start and end of the line between parent and child
+    //from a child finds the start and end of the line between its parent and itself
     function findStartAndEnd(c)
     {
         //parent exists
@@ -53,11 +54,12 @@
         }
         else {
             //parent was undefined
-            return [[0,0],[0,0]];//this should be changed
+            return [[0,0],[0,0]];//this should be changed // no hehe
         }
 
     }
 
+    //creates the element that is the line between a child c and its parent
     function setLine(c)
     {
         //console.log(c);
@@ -80,7 +82,7 @@
         return line;
     }
 
-    //
+    //creates the elemenet rect for the given class c
     function setRect(c)
     {
         const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -203,6 +205,7 @@
         return g;
     }
 
+    //when button is pressed using json of array of class data recived create the class map/diagram.
     function updateClassInfo(classInfo)
     {
         const classes = JSON.parse(classInfo);

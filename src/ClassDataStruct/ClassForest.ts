@@ -15,6 +15,10 @@ export class ClassForest{
         this.trees.push(new ClassTree(c));
     }
 
+    //creates the forest
+    //goes through array of classes
+    //if there is no parent then add this class to the tree and remove it from the keys array
+    //then ones all parents are created go though and initialize all parents // might be able to add this to the original loop
     private createForest(classes : ClassType [])
     {
         const keys : number [] = [...classes.keys()];
@@ -27,7 +31,7 @@ export class ClassForest{
             }
             //else if ()//need to work out if external class
         }
-        //now go per parent recursivly
+
         for (let i = 0; i < this.trees.length; i++)
         {
             this.trees[i].createTree(classes, keys);
@@ -35,7 +39,7 @@ export class ClassForest{
         }
     }
 
-
+    //moves all root nodes with children to the front of the trees array
     public sortIfChildren()
     {
         const sortedTrees : ClassTree[] = [];
@@ -58,18 +62,19 @@ export class ClassForest{
     {
         //first tree start at 0, dont care about y not that is for the tree
         const buffer : number = 5;
-        let x = 0;
+
         for (let i = 0; i < this.trees.length; i++)
         {
             const tree = this.trees[i];
             if (i !== 0)
             {
+                //prev tress x + the other half of its hiddenwidth to find where it ends at its widest point + buffer
                 tree.setCoords(this.trees[i - 1].root.c.x + this.trees[i - 1].root.hiddenWidth * 0.5 + buffer);
             }
             else {
+                //first tree so starts at 0
                 tree.setCoords(0);
             }
-            //need to find the width
         }
     }
 }
