@@ -2,10 +2,6 @@
 // This script will be run within the webview itself
 // It cannot access the main VS Code APIs directly.
 
-//const { lchmodSync } = require("fs");
-//const { json } = require("stream/consumers");
-
-
 (function () {
     // @ts-ignore
     const vscode = acquireVsCodeApi();
@@ -28,7 +24,6 @@
                 {
                     updateClassInfo(message.content);
                 }
-
         }
     });
 
@@ -39,8 +34,6 @@
     //from a child finds the start and end of the line between parent and child
     function findStartAndEnd(c)
     {
-        
-
         //parent exists
         //find x
         if (c.parentType !== undefined)
@@ -130,9 +123,6 @@
         rect.setAttributeNS(null, 'fill', fill);
         rect.setAttributeNS(null, 'stroke', 'red');
 
-        //const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-        //title.textContent = c.name  + 'test' ;
-
         //onclick tell extension 
         rect.onclick = function(){
             vscode.postMessage({type:'openWindow', content : c.uri});
@@ -148,12 +138,16 @@
             rect.setAttributeNS(null, 'stroke', 'red');
         };
 
-        //rect.appendChild(title);
+        const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        title.textContent = c.name;
+
+        rect.appendChild(title);
 
         return rect;
     }
 
-    function setName(name, x, y)
+    //for the info recived create a text element at the coords x and y
+    function setText1(name, x, y)
     {
         const text = document.createElementNS("http://www.w3.org/2000/svg", 'text');
         let sub = false;
@@ -178,8 +172,9 @@
 
         return {text, sub};
     }
-    
-    function setText(c)
+
+    //from the info in c create the group of texts that will appear for that class
+    function setName(c)
     {
         const g = document.createElementNS("http://www.w3.org/2000/svg", 'g');
         let name = c.name;
@@ -189,11 +184,11 @@
         {
             if (y + 10 > c.y + c.height)
             {
-                const text = setName('...', x, y);
+                const text = setText1('...', x, y);
                 g.appendChild(text.text);
                 break;
             }
-            const text = setName(name, x, y);
+            const text = setText1(name, x, y);
             g.appendChild(text.text);
             if (text.sub)
             {
@@ -210,22 +205,15 @@
 
     function updateClassInfo(classInfo)
     {
-        clearNumberOfClasses();
-        clearClassList();
-        let prevX = 0;
         const classes = JSON.parse(classInfo);
         const svg = document.querySelector('.svg1');
         svg.textContent = '';
-
-        
 
         svg.setAttributeNS(null, 'width', '20000');
         svg.setAttributeNS(null, 'height', '2000');
         
         let svgWidth = 0;
-        //console.log(window.screen.availWidth.toString(), window.screen.availHeight.toString(), window.screen.height, window.screen.width);
 
-        //console.log(classes);
         for (let i = 0; i < classes.length; i++)
         {
             if (svgWidth < (classes[i].x+ classes[i].hiddenWidth))
@@ -234,7 +222,7 @@
             }
             const rect = setRect(classes[i]);
             const line = setLine(classes[i]);
-            const text = setText(classes[i]);
+            const text = setName(classes[i]);
 
             svg.appendChild(rect);
             svg.appendChild(line);
@@ -245,19 +233,6 @@
         vscode.setState({ content: content });
 
     }
-
-    function clearClassList()
-    {
-        const ul = document.querySelector('.class-list');
-        ul.textContent = '';
-    }
-
-    function clearNumberOfClasses()
-    {
-        const ul = document.querySelector('.svg1');
-        ul.textContent = '';
-    }
-
 }());
 
 
