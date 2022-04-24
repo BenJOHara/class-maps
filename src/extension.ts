@@ -1,3 +1,4 @@
+import { performance } from 'perf_hooks';
 import * as vscode from 'vscode';
 import { ClassForest } from './ClassDataStruct/ClassForest';
 import { ClassType } from './ClassDataStruct/ClassType';
@@ -15,10 +16,10 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(ClassViewProvider.viewType, provider));
 
-	context.subscriptions.push(
+	/*context.subscriptions.push(
 		vscode.commands.registerCommand('class-maps.show-class-info', () => {
 
-		}));
+		}));*/
 	console.log("end activate Start");
 }
 
@@ -70,30 +71,65 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 		return files;
 	}
 
-	//gets all classes as ClassTypes in the workspace
-	//
-	private async getClasses() {
-		const basicType : string[] = [ "boolean", "byte", "char", "double", "float", "int", "long", "short"];
-		const uris = await this.getFiles();
-		const classes: ClassType[] = [];
+
+	private async openFiles(uris : vscode.Uri[])
+	{
 		const files: vscode.TextDocument[] = [];
 		for (const uri of uris) {
 			const file = await vscode.workspace.openTextDocument(uri);
 			files.push(file);
 		}
+		return files;
+	}
 
+	//checks if a name exists in an array of classtypes
+	private doesParentExist(classes: ClassType[], parent: string) {
+		for (let i = 0; i < classes.length; i++) {
+			if (classes[i].name === parent) {
+				return true;
+			}
+		}
+		return false;
+	}
+	//gets all classes as ClassTypes in the workspace
+	//
+	private async getClasses() {
+		let timeAtStart = performance.now();
+		const basicType: string[] = ["boolean", "byte", "char", "double", "float", "int", "long", "short"];
+		
+		const classes: ClassType[] = [];
+		
+		let getFilesStart = performance.now();
+
+		const uris : vscode.Uri[]= await this.getFiles();
+
+		const files: vscode.TextDocument[] = await this.openFiles(uris);
+
+		let getFilesEnd = performance.now();
+
+		console.log("Time to get files: " + (getFilesEnd - getFilesStart));
+
+
+		let tokenizerStart = performance.now();
 		const tokenizer: Tokenizer = new Tokenizer(files);
 		const tokensAll: Tokens[] = tokenizer.getTokens();
+
+		let tokenizerEnd = performance.now();
+		console.log("Tokenizer time: " + (tokenizerEnd - tokenizerStart));
+
 		let numberOfClasses = 0;
 		let classFound: boolean = false;
 		let braceFound: boolean = false;
 		let braceTally: number = 0;
 		let lineCount: number = 0;
 		let startOfClass: number = 0;
+
+		let startAllTokens = performance.now();
+
 		tokensAll.forEach((tokens, i) => {
 			const dependsOn: string[] = [];
-			const classesUsed : string [] = [];
-			const accourances : number [] = [];
+			const classesUsed: string[] = [];
+			const accourances: number[] = [];
 			tokens.t.forEach((t, j) => {//iterate through all tokens in order
 				if (t === 'class' && tokens.t[j - 1] !== '.' && !classFound) //this !classfound means i dont care about nested classes i could change this to make them a different colour but idk if i want to
 				{
@@ -103,22 +139,30 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 					classes[numberOfClasses - 1] = new ClassType();
 					classes[numberOfClasses - 1].uri = tokens.uri;
 					classes[numberOfClasses - 1].name = tokens.t[j + 1];
+					if (tokens.t[j + 1] === 'Point')
+					{
+						console.log();
+					}
 				}
 				else if (t === 'import')//if this then all classes in this file depend on token.t[j + 1]
 				{
-					console.log(tokens.t[j + 1]);
-					dependsOn.push(tokens.t[j + 1]);
+					if (tokens.t[j + 1] === 'static') {
+						//console.log(tokens.t[j + 2]);
+						dependsOn.push(tokens.t[j + 2]);
+
+					}
+					else {
+						//console.log(tokens.t[j + 1]);
+						dependsOn.push(tokens.t[j + 1]);
+					}
 				}
-				else if (t === 'new')
-				{
-					let index = classesUsed.indexOf(tokens.t[j+1]) ;
-					if (index !== -1)
-					{
+				else if (t === 'new') {
+					let index = classesUsed.indexOf(tokens.t[j + 1]);
+					if (index !== -1) {
 						accourances[index]++;
 					}
-					else 
-					{
-						classesUsed.push(tokens.t[j+1]);
+					else {
+						classesUsed.push(tokens.t[j + 1]);
 						accourances.push(1);
 					}
 				}
@@ -129,6 +173,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 					}
 					else {
 						classes[numberOfClasses - 1].parent = tokens.t[j + 1];// -1 as zero index and j+ 1 cus class name is next token
+						console.log(classes[numberOfClasses - 1].parent);
 					}
 
 				}
@@ -142,17 +187,14 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 				else if (t === '\n') {
 					lineCount++;
 				}
-				else{
-					if (basicType.indexOf(t) === -1)
-					{
-						let index = classesUsed.indexOf(tokens.t[j+1]);
-						if (index !== -1)
-						{
+				else {
+					if (basicType.indexOf(t) === -1) {
+						let index = classesUsed.indexOf(tokens.t[j + 1]);
+						if (index !== -1) {
 							accourances[index]++;
 						}
-						else 
-						{
-							classesUsed.push(tokens.t[j+1]);
+						else {
+							classesUsed.push(tokens.t[j + 1]);
 							accourances.push(1);
 						}
 					}
@@ -166,10 +208,18 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 					classFound = false;
 					braceFound = false;
 					lineCount = 0;
+					if (classes[numberOfClasses - 1].name === 'Point')
+					{
+						console.log();
+					}
 				}
 			});
 		});
 		//console.log(classes);
+
+		let endAllTokens = performance.now();
+
+		console.log("Time for all tokens: " + (endAllTokens - startAllTokens));
 
 		for (let i = 0; i < classes.length; i++) {
 			if (!this.doesParentExist(classes, classes[i].parent) && classes[i].parent !== "") {
@@ -182,19 +232,15 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 				classes.push(c);
 			}
 		}
+		let timeAtEnd = performance.now();
+
+		console.log("Time before large loop: " + (startAllTokens - timeAtStart) + " : " + (timeAtEnd - endAllTokens));
 
 		return classes;
+
 	}
 
-	//checks if a name exists in an array of classtypes
-	private doesParentExist(classes: ClassType[], parent: string) {
-		for (let i = 0; i < classes.length; i++) {
-			if (classes[i].name === parent) {
-				return true;
-			}
-		}
-		return false;
-	}
+	
 
 	//sorts an array of classes by the compareClasses function
 	private sortClassesArray(classes: ClassType[]): ClassType[] {
@@ -248,13 +294,23 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 	//sends the classtype data to the main.js
 	//
 	public async showClassInfo() {
+		let startTimeGet = performance.now();
 		const content = await this.getClasses();//need to set height and width based of a scale 
-		//this.sortClassesArray(content);
+		let endTimeGet = performance.now();
+		console.log("Time taken for getClasses: " + (endTimeGet - startTimeGet));
+		this.sortClassesArray(content);
+		
 		this.setSize(content);
-
+		let startTimeCreateForest = performance.now();
 		const forest = new ClassForest(content);
+		let startTimeSortChildren = performance.now();
 		forest.sortIfChildren();
+		let startTimeSetCoords = performance.now();
 		forest.setCoords();
+		let endTimeCreateForest = performance.now();
+
+		console.log("Time taken for forest creation: " + (startTimeSortChildren - startTimeCreateForest) + " : " 
+					+ (startTimeSetCoords - startTimeSortChildren) + " : " + (endTimeCreateForest - startTimeSetCoords));
 
 		const jsonText = JSON.stringify(content);
 		if (this._view) {

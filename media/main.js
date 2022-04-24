@@ -88,10 +88,7 @@
         const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
 
         //position in SVG
-        if (c.x === 0 && c.y === 0)//this is because some classes inherit from external classes
-        {
-            console.log("placing at 0,0", c);
-        }
+        
         rect.setAttributeNS(null, 'x', c.x.toString());
         rect.setAttributeNS(null, 'y', c.y.toString());
 
@@ -109,7 +106,7 @@
         {
             rect.setAttributeNS(null, 'height', '20');
             rect.setAttributeNS(null, 'width', '10');//
-            console.log ("not seen", c);
+            //console.log ("not seen", c);
             fill = 'red';
         }
 
@@ -118,7 +115,7 @@
 
         if (c.external)
         {
-            console.log("external" , c);
+            //console.log("external" , c);
             fill = 'LightBlue';
         }
 
@@ -227,11 +224,15 @@
             const line = setLine(classes[i]);
             const text = setName(classes[i]);
 
+            if (classes[i].x === 0 && classes[i].y === 0 && classes[i])//this is because some classes inherit from external classes
+            {
+            }
+
+
             svg.appendChild(rect);
             svg.appendChild(line);
             svg.appendChild(text);
         }
-        console.log(svgWidth);
         svg.setAttributeNS(null, 'width', svgWidth.toString());
         vscode.setState({ content: content });
 

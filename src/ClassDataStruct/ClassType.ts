@@ -6,7 +6,7 @@ export class ClassType{
 	uri:vscode.Uri;//uri of file class is stored in
 	nLines:number = 0;//number of lines of code that make up the class
     nTokens:number = 0;//number of tokens that the class has
-	hiddenWidth = 0;
+	hiddenWidth:number = 0;// this is the sum of the hiddenwidth of the nodes children
 	parentType: ClassType;
 	hasClasses:string[] = [];
 	usesClasses:string[] = [];
@@ -21,8 +21,4 @@ export class ClassType{
 	width:number = 0;
 
 	scale:number = 2;
-
-	public setParentType(c: ClassType){
-		this.parentType = c;
-	}
 }

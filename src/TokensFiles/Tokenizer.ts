@@ -109,7 +109,7 @@ export class Tokenizer {
                 let s: string = chars[i];
                 i++;
 
-                while ((/[a-zA-Z0-9_$.]/).test(chars[i])) {
+                while ((/[a-zA-Z0-9_$.<>]/).test(chars[i])) {
                     s = s + chars[i];
                     i++;
                 }
@@ -133,6 +133,22 @@ export class Tokenizer {
                 tokenProper.push(new Token(chars[i], 3));
                 lineCount++;
             }
+            /*else if (chars[i] === '<' && chars[i - 1] !== '=' && chars[i + 1] !== '=')//breaks cus maths
+            {
+                let s: string = chars[i];
+                i++;
+                while (chars[i] !== '>') {
+                    s = s + chars[i];
+                    i++;
+                    if (i + 10 > text.length)
+                    {
+                        console.log("EEORR");
+                    }
+                }
+                s = s + chars[i];
+                tokens.push(s);
+                tokenProper.push(new Token(s, -1));
+            }*/
             else//i dont care about anything else
             {
                 let s: string = '';

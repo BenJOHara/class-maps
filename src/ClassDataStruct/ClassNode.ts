@@ -8,7 +8,7 @@ export class ClassNode{
 
     c : ClassType;
 
-    hiddenWidth : number = 0; // this is the sum of the hiddenwidth of the nodes children
+    //hiddenWidth : number = 0; // this is the sum of the hiddenwidth of the nodes children
 
     constructor(_c: ClassType, _level:number , parent? : ClassNode)
     {

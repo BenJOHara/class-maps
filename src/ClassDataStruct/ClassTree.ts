@@ -57,7 +57,7 @@ export class ClassTree {
         this.setY(this.root, 0);//start at y = 0
         this.setHiddenWidth(this.root);
         if (this.root.parent.length === 0){
-            this.root.c.x = this.root.hiddenWidth / 2 + leftHW;
+            this.root.c.x = this.root.c.hiddenWidth / 2 + leftHW;
         }
         return this.setX(this.root, leftHW);
     }
@@ -89,7 +89,7 @@ export class ClassTree {
         let p : ClassNode = root;
         if (p.children.length === 0)//no children
         {
-            p.hiddenWidth = p.c.width;
+            //p.hiddenWidth = p.c.width;
             p.c.hiddenWidth = p.c.width;
         }
         else 
@@ -100,8 +100,8 @@ export class ClassTree {
             }
             for (let i = 0; i < p.children.length; i++) 
             {
-                p.hiddenWidth = p.hiddenWidth + p.children[i].hiddenWidth;
-                p.c.hiddenWidth = p.hiddenWidth + p.children[i].hiddenWidth;
+                p.c.hiddenWidth = p.c.hiddenWidth + p.children[i].c.hiddenWidth;
+                //p.c.hiddenWidth = p.hiddenWidth + p.children[i].hiddenWidth;
             }
         }
     }
@@ -111,8 +111,8 @@ export class ClassTree {
     //returns the next place where a node can start
     private findX(node : ClassNode, lastX : number)
     {
-        node.c.x = lastX + node.hiddenWidth * 0.5;//set x as the middle of your hidden width
-        return lastX + node.hiddenWidth; //return the edge of your hidden width for the next child
+        node.c.x = lastX + node.c.hiddenWidth * 0.5;//set x as the middle of your hidden width
+        return lastX + node.c.hiddenWidth; //return the edge of your hidden width for the next child
     }
 
     //need to start at the bottom and go up
@@ -125,7 +125,7 @@ export class ClassTree {
     //For every child call setX to set their childrens x
     private setX(root: ClassNode, zerodX : number) {
         let p : ClassNode = root;
-        let x : number = p.c.x - p.hiddenWidth * 0.5;
+        let x : number = p.c.x - p.c.hiddenWidth * 0.5;
 
         if (p.children.length !== 0)
         {
