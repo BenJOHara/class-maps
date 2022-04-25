@@ -1,6 +1,7 @@
 import { ClassTree } from "./ClassTree";
 import { ClassType } from "./ClassType";
 
+
 export class ClassForest{
     trees : ClassTree [] = [];
 
@@ -38,6 +39,9 @@ export class ClassForest{
             this.trees[i].setParentTypes(this.trees[i].root);
         }
     }
+
+
+    
 
     //moves all root nodes with children to the front of the trees array
     public sortIfChildren()
@@ -77,4 +81,49 @@ export class ClassForest{
             }
         }
     }
+
+
+    public sortTreesByTotalChildren()
+    {
+        this.trees =  this.sortClassesArray(this.trees);
+    }
+
+    //sorts an array of classes by the compareClasses function
+	private sortClassesArray(trees : ClassTree[]): ClassTree[] {
+		const a1: ClassTree[] = [];
+		const a2: ClassTree[] = [];
+
+		if (trees.length === 1) {
+			return trees;
+		}
+		else if (trees.length === 0) {
+			return [];
+		}
+		else {
+			const pivot = trees[0];
+			for (let i = 1; i < trees.length; i++) {
+				if (this.compareClasses(pivot, trees[i]))//true if pivot smaller
+				{
+					a1.push(trees[i]);
+				}
+				else {
+					a2.push(trees[i]);
+				}
+			}
+			return this.sortClassesArray(a1).concat(trees[0]).concat(this.sortClassesArray(a2));
+		}
+
+	}
+
+    //true if b has more lines then a
+	//else false
+	private compareClasses(a: ClassTree, b: ClassTree) {
+		if (a.countNodesInTree() < b.countNodesInTree()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 }

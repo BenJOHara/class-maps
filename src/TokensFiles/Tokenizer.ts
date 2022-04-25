@@ -30,6 +30,7 @@ export class Tokenizer {
     //checks if the char that would appear after the string is escaped
     // if text = '\' then true if text = '\\' false
     //recursive 
+    //just realised like a month later that i probs just could have counted if it was even or not.
     private isEscaped(text:string) : boolean
     {
         if (text.length === 1)

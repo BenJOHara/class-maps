@@ -1,3 +1,4 @@
+import { receiveMessageOnPort } from "worker_threads";
 import { ClassType } from "./ClassType";
 
 export class ClassNode{
@@ -20,6 +21,21 @@ export class ClassNode{
         }
     }
 
+    public countChildren()
+    {
+        return this.recCountChildren(this);
+    }
+
+    private recCountChildren(node : ClassNode) : number
+    {
+        let noChildren : number = 1; //start at one for your self
+        for (let i = 0; i < node.children.length; i++)
+        {
+            noChildren = noChildren + this.recCountChildren(node.children[i]);
+        }
+        return noChildren;
+    }
+
     //returns the node of the child
     //adds a new child by its ClassType and creates it a node
     public addChild(c : ClassType, level:number)
@@ -30,7 +46,7 @@ export class ClassNode{
     }
 
     //explains its self
-    public calcTallestChild()
+    public calcTallestChild()//todo : can be called if no children FIX
     {
         let tallest = this.children[0].c.height;
         for (let i = 1; i < this.children.length; i++)

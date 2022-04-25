@@ -242,43 +242,9 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 
 	
 
-	//sorts an array of classes by the compareClasses function
-	private sortClassesArray(classes: ClassType[]): ClassType[] {
-		const a1: ClassType[] = [];
-		const a2: ClassType[] = [];
+	
 
-		if (classes.length === 1) {
-			return classes;
-		}
-		else if (classes.length === 0) {
-			return [];
-		}
-		else {
-			const pivot = classes[0];
-			for (let i = 1; i < classes.length; i++) {
-				if (this.compareClasses(pivot, classes[i]))//true if pivot smaller
-				{
-					a1.push(classes[i]);
-				}
-				else {
-					a2.push(classes[i]);
-				}
-			}
-			return this.sortClassesArray(a1).concat(classes[0]).concat(this.sortClassesArray(a2));
-		}
-
-	}
-
-	//true if b has more lines then a
-	//else false
-	private compareClasses(a: ClassType, b: ClassType) {
-		if (a.nLines < b.nLines) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
+	
 
 	//sets the height and width of all classes
 	private setSize(classes: ClassType[]) {
@@ -298,13 +264,13 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 		const content = await this.getClasses();//need to set height and width based of a scale 
 		let endTimeGet = performance.now();
 		console.log("Time taken for getClasses: " + (endTimeGet - startTimeGet));
-		this.sortClassesArray(content);
-		
+
 		this.setSize(content);
 		let startTimeCreateForest = performance.now();
 		const forest = new ClassForest(content);
 		let startTimeSortChildren = performance.now();
-		forest.sortIfChildren();
+		//forest.sortIfChildren();
+		forest.sortTreesByTotalChildren();
 		let startTimeSetCoords = performance.now();
 		forest.setCoords();
 		let endTimeCreateForest = performance.now();

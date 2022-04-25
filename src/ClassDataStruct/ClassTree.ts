@@ -3,6 +3,8 @@ import { ClassType } from "./ClassType";
 
 export class ClassTree {
     root: ClassNode;
+
+
     constructor(c: ClassType) {
         this.root = new ClassNode(c, 0);
     }
@@ -59,7 +61,7 @@ export class ClassTree {
         if (this.root.parent.length === 0){
             this.root.c.x = this.root.c.hiddenWidth / 2 + leftHW;
         }
-        return this.setX(this.root, leftHW);
+        return this.setX(this.root);
     }
 
 
@@ -123,7 +125,7 @@ export class ClassTree {
     //This is where the first child will start
     //For every child place them based off the previous child
     //For every child call setX to set their childrens x
-    private setX(root: ClassNode, zerodX : number) {
+    private setX(root: ClassNode) {
         let p : ClassNode = root;
         let x : number = p.c.x - p.c.hiddenWidth * 0.5;
 
@@ -135,8 +137,14 @@ export class ClassTree {
             }
             for (let i = 0; i < p.children.length; i++) 
             {
-                this.setX(p.children[i], zerodX);
+                this.setX(p.children[i]);
             }
         }
+    }
+
+
+    public countNodesInTree()
+    {
+        return this.root.countChildren();
     }
 }
