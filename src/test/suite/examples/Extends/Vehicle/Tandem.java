@@ -1,3 +1,5 @@
+package Vehicle;
+
 public class Tandem extends Bike{
     Tandem()
     {

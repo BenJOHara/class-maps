@@ -16,7 +16,7 @@ export class Tokenizer {
         for (let i = 0; i < files.length; i++)
         {
             const done = this.tokenize(files[i].getText());
-            const token = new Tokens(done.tokens, files[i].uri, done.lineCount, done.tokenProper);
+            const token = new Tokens(done.tokens,  done.lineCount, done.tokenProper, files[i].uri,);
             this.tokens.push(token);
         }
     }

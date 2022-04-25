@@ -1,3 +1,5 @@
+package Vehicle;
+
 class Vehicle {
     public int speed;
     public int seats;

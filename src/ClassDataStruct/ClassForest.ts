@@ -3,7 +3,7 @@ import { ClassType } from "./ClassType";
 
 
 export class ClassForest{
-    trees : ClassTree [] = [];
+    public trees : ClassTree [] = [];
 
     constructor(classes :ClassType[])
     {

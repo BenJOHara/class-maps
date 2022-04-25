@@ -12,10 +12,13 @@ export class Tokens{
     public lines : number;
 
     
-    constructor(tokens : string[], uri : vscode.Uri, lines: number, tokensProper:Token[])
+    constructor(tokens : string[],  lines: number, tokensProper:Token[], uri ? : vscode.Uri,)
     {
         this.t = tokens;
-        this.uri = uri;
+        if (uri !== undefined)
+        {
+            this.uri = uri;
+        }
         this.lines = lines;
         this.tokens = tokensProper;
     }

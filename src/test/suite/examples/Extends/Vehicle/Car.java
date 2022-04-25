@@ -1,3 +1,5 @@
+package Vehicle;
+
 class Car extends Vehicle{
     public boolean convertable;
     Car(){
