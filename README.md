@@ -22,4 +22,4 @@ If two classes have the same name but are in different places they will cause un
 ## Release Notes
 This version clears testing features.
 Streamlined for just the class hierarchy map
-### 0.1.0
+### 1.0.0

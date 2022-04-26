@@ -2,6 +2,7 @@ import { performance } from 'perf_hooks';
 import * as vscode from 'vscode';
 import { ClassForest } from './ClassDataStruct/ClassForest';
 import { ClassType } from './ClassDataStruct/ClassType';
+import { Parser } from './Parser';
 import { Tokenizer } from './TokensFiles/Tokenizer';
 import { Tokens } from './TokensFiles/Tokens';
 
@@ -97,8 +98,6 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 		let timeAtStart = performance.now();
 		const basicType: string[] = ["boolean", "byte", "char", "double", "float", "int", "long", "short"];
 		
-		const classes: ClassType[] = [];
-		
 		let getFilesStart = performance.now();
 
 		const uris : vscode.Uri[]= await this.getFiles();
@@ -111,142 +110,10 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 		const tokenizer: Tokenizer = new Tokenizer(files);
 		const tokensAll: Tokens[] = tokenizer.getTokens();
 
-		let tokenizerEnd = performance.now();
-
-		let numberOfClasses = 0;
-		let classFound: boolean = false;
-		let braceFound: boolean = false;
-		let braceTally: number = 0;
-		let lineCount: number = 0;
-		let startOfClass: number = 0;
-
-		let startAllTokens = performance.now();
-
-		tokensAll.forEach((tokens, i) => {
-			const dependsOn: string[] = [];
-			const classesUsed: string[] = [];
-			const accourances: number[] = [];
-			tokens.t.forEach((t, j) => {//iterate through all tokens in order
-				if (t === 'class' && tokens.t[j - 1] !== '.' && !classFound) //this !classfound means i dont care about nested classes i could change this to make them a different colour but idk if i want to
-				{
-					startOfClass = j;
-					numberOfClasses++;
-					classFound = true;
-					classes[numberOfClasses - 1] = new ClassType();
-					classes[numberOfClasses - 1].uri = tokens.uri;
-					classes[numberOfClasses - 1].name = tokens.t[j + 1];
-					if (tokens.t[j + 1] === 'Point')
-					{
-						console.log();
-					}
-				}
-				else if (t === 'import')//if this then all classes in this file depend on token.t[j + 1]
-				{
-					if (tokens.t[j + 1] === 'static') {
-						//console.log(tokens.t[j + 2]);
-						dependsOn.push(tokens.t[j + 2]);
-
-					}
-					else {
-						//console.log(tokens.t[j + 1]);
-						dependsOn.push(tokens.t[j + 1]);
-					}
-				}
-				else if (t === 'new') {
-					let index = classesUsed.indexOf(tokens.t[j + 1]);
-					if (index !== -1) {
-						accourances[index]++;
-					}
-					else {
-						classesUsed.push(tokens.t[j + 1]);
-						accourances.push(1);
-					}
-				}
-				else if (t === 'extends') {
-					//has parent
-					if (classes[numberOfClasses - 1] === undefined) {
-						console.log();
-					}
-					else {
-						classes[numberOfClasses - 1].parent = tokens.t[j + 1];// -1 as zero index and j+ 1 cus class name is next token
-						console.log(classes[numberOfClasses - 1].parent);
-					}
-
-				}
-				else if (t === '{') {
-					braceFound = true;
-					braceTally++;
-				}
-				else if (t === '}') {
-					braceTally = braceTally - 1;
-				}
-				else if (t === '\n') {
-					lineCount++;
-				}
-				else {
-					if (basicType.indexOf(t) === -1) {
-						let index = classesUsed.indexOf(tokens.t[j + 1]);
-						if (index !== -1) {
-							accourances[index]++;
-						}
-						else {
-							classesUsed.push(tokens.t[j + 1]);
-							accourances.push(1);
-						}
-					}
-				}
-				if (braceTally === 0 && braceFound && classFound) {//
-					classes[numberOfClasses - 1].nLines = lineCount;
-					classes[numberOfClasses - 1].nTokens = j - startOfClass;
-					classes[numberOfClasses - 1].dependsOn = dependsOn;
-					//console.log(classes[numberOfClasses - 1].name, lineCount, j - startOfClass);
-					//end of a class should have all info
-					classFound = false;
-					braceFound = false;
-					lineCount = 0;
-					if (classes[numberOfClasses - 1].name === 'Point')
-					{
-						console.log();
-					}
-				}
-			});
-		});
-		//console.log(classes);
-
-		let endAllTokens = performance.now();
-
-
-		console.log("number of files: " + uris.length);
-
-		console.log("Time to get files: " + (getFilesEnd - getFilesStart));
-
-		console.log("Tokenizer time: " + (tokenizerEnd - tokenizerStart));
-
-		console.log("Time for all tokens: " + (endAllTokens - startAllTokens));
-
-		for (let i = 0; i < classes.length; i++) {
-			if (!this.doesParentExist(classes, classes[i].parent) && classes[i].parent !== "") {
-				// we must create this parent 
-				const c = new ClassType();
-				c.name = classes[i].parent;
-				c.nTokens = 50;
-				c.nLines = 55;
-				c.external = true;
-				classes.push(c);
-			}
-		}
-		let timeAtEnd = performance.now();
-
-		console.log("Time before large loop: " + (startAllTokens - timeAtStart) + " : " + (timeAtEnd - endAllTokens));
-
+		const parser = new Parser(tokensAll);
+		const classes : ClassType [] = parser.getClasses();
 		return classes;
-
 	}
-
-	
-
-	
-
 	
 
 	//sets the height and width of all classes

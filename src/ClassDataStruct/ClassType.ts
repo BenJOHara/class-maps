@@ -8,8 +8,8 @@ export class ClassType{
     nTokens:number = 0;//number of tokens that the class has
 	hiddenWidth:number = 0;// this is the sum of the hiddenwidth of the nodes children
 	parentType: ClassType;
-	hasClasses:string[] = [];
-	usesClasses:string[] = [];
+	//hasClasses:string[] = [];
+	//usesClasses:string[] = [];
 	dependsOn:string[] = [];
 	external:boolean = false;
 
