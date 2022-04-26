@@ -107,15 +107,11 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 
 		let getFilesEnd = performance.now();
 
-		console.log("Time to get files: " + (getFilesEnd - getFilesStart));
-
-
 		let tokenizerStart = performance.now();
 		const tokenizer: Tokenizer = new Tokenizer(files);
 		const tokensAll: Tokens[] = tokenizer.getTokens();
 
 		let tokenizerEnd = performance.now();
-		console.log("Tokenizer time: " + (tokenizerEnd - tokenizerStart));
 
 		let numberOfClasses = 0;
 		let classFound: boolean = false;
@@ -218,6 +214,13 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 		//console.log(classes);
 
 		let endAllTokens = performance.now();
+
+
+		console.log("number of files: " + uris.length);
+
+		console.log("Time to get files: " + (getFilesEnd - getFilesStart));
+
+		console.log("Tokenizer time: " + (tokenizerEnd - tokenizerStart));
 
 		console.log("Time for all tokens: " + (endAllTokens - startAllTokens));
 
