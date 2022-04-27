@@ -1,8 +1,9 @@
 {
   "name": "class-maps",
+  "publisher": "ClassMaps",
 	"displayName": "Class Maps",
 	"description": "Visulizations of classes and their dependencies",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"engines": {
 		"vscode": "^1.65.0"
 	},

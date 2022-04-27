@@ -1,0 +1,41 @@
+
+public class Parent extends Person{
+
+    Parent()
+    {
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+        System.out.println("Parent");
+    }
+}

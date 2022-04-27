@@ -1,11 +1,15 @@
-import { count } from 'console';
+import { performance } from 'perf_hooks';
 import * as vscode from 'vscode';
-import { ClassType } from './ClassType';
-import { Tokenizer } from './Tokenizer';
-import { Tokens } from './Tokens';
+import { ClassForest } from './ClassDataStruct/ClassForest';
+import { ClassType } from './ClassDataStruct/ClassType';
+import { Parser } from './Parser';
+import { Tokenizer } from './TokensFiles/Tokenizer';
+import { Tokens } from './TokensFiles/Tokens';
 
+
+//registers webview
 export function activate(context: vscode.ExtensionContext) {
-	
+
 	console.log('class-maps is now active');
 
 	const provider = new ClassViewProvider(context.extensionUri);
@@ -13,39 +17,30 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(ClassViewProvider.viewType, provider));
 
-	context.subscriptions.push(
-		vscode.commands.registerCommand('class-maps.show-names', () => {
-			
-		}));
+	/*context.subscriptions.push(
+		vscode.commands.registerCommand('class-maps.show-class-info', () => {
 
-	context.subscriptions.push(
-		vscode.commands.registerCommand('class-maps.show-number', () => {
-			
-		}));
-	
-	context.subscriptions.push(
-		vscode.commands.registerCommand('class-maps.show-class-info', () =>{
-			
-		}));
+		}));*/
 	console.log("end activate Start");
 }
 
-class ClassViewProvider implements vscode.WebviewViewProvider{
+//sets webview settings
+//recieves message from main.js
+class ClassViewProvider implements vscode.WebviewViewProvider {
 
 	public static readonly viewType = 'class-maps.map-view';
-	
+
 	private _view?: vscode.WebviewView;
 
 	constructor(
 		private readonly _extensionUri: vscode.Uri,
 	) { }
 
-	public resolveWebviewView(		
+	public resolveWebviewView(
 		webviewView: vscode.WebviewView,
 		context: vscode.WebviewViewResolveContext,
 		_token: vscode.CancellationToken,
-	)
-	{
+	) {
 		this._view = webviewView;
 
 		webviewView.webview.options = {
@@ -55,239 +50,111 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 
 		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-		webviewView.webview.onDidReceiveMessage(async data=>{
-			switch (data.type)
-			{
-				case 'getNames':
-					{
-						//webviewView.webview.postMessage({ type: 'showNames', content: ['Hello from showNames', 'element from button'] });
-						await this.showNames();
-						break;
-					}
-				case 'getNumber':
-					{
-						//webviewView.webview.postMessage({ type: 'showNumber', content: ['Hello from showNumber', 'element from button'] });
-						await this.showNumber();
-						break;
-					}
+		webviewView.webview.onDidReceiveMessage(async data => {
+			switch (data.type) {
 				case 'getClassInfo':
 					{
 						await this.showClassInfo();
 						break;
 					}
+				case 'openWindow':
+					{
+						const page: vscode.TextDocument = await vscode.workspace.openTextDocument(data.content.fsPath);
+						await vscode.window.showTextDocument(page);
+					}
 			}
 		});
 	}
 
-
-	private async getNumberOfFiles()
-	{
+	//gets all files from workspace
+	private async getFiles() {
 		const files: vscode.Uri[] = await vscode.workspace.findFiles('**/*.java');
-		return files.length;
-	}
-
-	private async getFiles()
-	{
-		const files : vscode.Uri[]= await vscode.workspace.findFiles('**/*.java');
 		return files;
 	}
 
-	private async getNames()
+
+	private async openFiles(uris : vscode.Uri[])
 	{
-		const uris : vscode.Uri[] = await this.getFiles();
-		const fileNames : string[] = [];
-		for (const uri of uris)
-		{
+		const files: vscode.TextDocument[] = [];
+		for (const uri of uris) {
 			const file = await vscode.workspace.openTextDocument(uri);
-			const text = file.getText();
-			const indexOfClassId = text.indexOf('class') + 6;
-			fileNames.push(text.substring(indexOfClassId).substring(0, text.substring(indexOfClassId).indexOf('{'))); 
+			files.push(file);
 		}
-		return fileNames;
+		return files;
 	}
 
-
-	private tokenizer(text:string)
-	{
-		let lineCount : number = 0;
-		let tokens :string [] = [];
-		const chars = [...text];
-		//last space/; 
-		let indexOfLastSpace = 0;
-		let c :string [] = [];
-		//collapes spaces
-
-		for (let i : number = 0; i < text.length; i++){
-			if ( chars[i] === '/')
-			{
-				if ( chars[i+1] ==='/')
-				{
-					while (chars[i] !== '\n')
-					{
-						i++;
-					}
-				}
-				else if ( chars[i+1] === '*')
-				{
-					while (chars[i] !== '*' && chars[i+1] !== '/')
-					{
-						i++;
-					}
-					i++; // leaves on the / so next loop over it is changed to the next
-				}
+	//checks if a name exists in an array of classtypes
+	private doesParentExist(classes: ClassType[], parent: string) {
+		for (let i = 0; i < classes.length; i++) {
+			if (classes[i].name === parent) {
+				return true;
 			}
-			else if (chars[i] === '"')//strings '' or ""
-			{
-				let s :string = chars[i];
-				i++;
-				while (chars[i] !== '"')
-				{
-					s = s + chars[i];
-					i++;
-				}
-				s = s + chars[i];
-				tokens.push(s);
-			}
-			else if (chars[i] === '\'')
-			{
-				let s :string = chars[i];
-				i++;
-				while (chars[i] !== '\'')
-				{
-					s = s + chars[i];
-					i++;
-				}
-				s = s + chars[i];
-				tokens.push(s);
-			}
-			else if ((/[a-zA-Z_$]/).test(chars[i]))
-			{
-				let s :string = chars[i];
-				i++;
-				const keywords :string [] = [ "abstract", "assert", "boolean",
-                "break", "byte", "case", "catch", "char", "class", "const",
-                "continue", "default", "do", "double", "else", "extends", "false",
-                "final", "finally", "float", "for", "goto", "if", "implements",
-                "import", "instanceof", "int", "interface", "long", "native",
-                "new", "null", "package", "private", "protected", "public",
-                "return", "short", "static", "strictfp", "super", "switch",
-                "synchronized", "this", "throw", "throws", "transient", "true",
-                "try", "void", "volatile", "while" ];
-				
-				while ((/[a-zA-Z0-9_$]/).test(chars[i]))
-				{
-					s = s+ chars[i];
-					i++;
-				}
-				i--;
-				tokens.push(s);//may need to add here to check if is keyword from above
-			}
-			else if ((/[0-9]/).test(chars[i]))
-			{
-				let s :string = chars[i];
-				i++;
-				while ((/[0-9]/).test(chars[i])){
-					s = s + chars[i];
-					i++;
-				}
-				i--;
-				tokens.push(s);
-			}
-			else if (chars[i] === '\n')
-			{
-				lineCount++;
-			}
-			else//i dont care about anything else
-			{
-				let s : string = '';
-				if (chars[i] !== ' ' && chars[i] !== '	' && chars[i] !== '\n' && chars[i] !== ';')
-				{
-					s = s + chars[i];
-				}
-				if ( s === '')
-				{
-
-				}
-				else 
-				{
-					tokens.push(s);
-				}
-			}
-		}		
-		console.log("tokens found");
-		return tokens;
+		}
+		return false;
 	}
+	//gets all classes as ClassTypes in the workspace
+	//
+	private async getClasses() {
+		let timeAtStart = performance.now();
+		const basicType: string[] = ["boolean", "byte", "char", "double", "float", "int", "long", "short"];
+		
+		let getFilesStart = performance.now();
 
+		const uris : vscode.Uri[]= await this.getFiles();
 
-	private parseClassFile(text:string, uri : vscode.Uri)
-	{
-		//find number of classes
-		const tokens : string[] = this.tokenizer(text);
-		const classes : ClassType[] = [];
-		for (let i : number = 0; i < tokens.length; i++)
-		{
-			if (tokens[i] === "class")//class found
-			{
-				let length : number = 0;
-				const className : string = tokens[i+1];
-				if (tokens.indexOf("class", i + 1) === -1)
-				{
-					length = tokens.length;
-				}
-				else
-				{
-					length = tokens.indexOf("class", i + 1);
-				}
-				let parent : string = '';
-				if (tokens.indexOf("extends", i + 1) < tokens.indexOf("class", i + 1)){
-					parent = tokens[tokens.indexOf("extends", i + 1) + 1];// extends 
-				}
+		const files: vscode.TextDocument[] = await this.openFiles(uris);
 
-				const hasClasses : string [] = [];
-				const usesClasses : string [] = [];
+		let getFilesEnd = performance.now();
 
-				const _uri : vscode.Uri = uri;
+		let tokenizerStart = performance.now();
+		const tokenizer: Tokenizer = new Tokenizer(files);
+		const tokensAll: Tokens[] = tokenizer.getTokens();
 
-				let _class : ClassType = new ClassType(className, length, 0, _uri, parent, hasClasses, usesClasses);
-				classes.push(_class);
-			}
+		const parser = new Parser(tokensAll);
+		const classes : ClassType [] = parser.getClassData();
+		return classes;
+	}
+	
+
+	//sets the height and width of all classes
+	private setSize(classes: ClassType[]) {
+		const maxWidth = 25;
+		for (let i: number = 0; i < classes.length; i++) {
+			classes[i].height = classes[i].nLines * classes[i].scale;
+			classes[i].width = maxWidth;//default can change this in some ways idk yet
 		}
 		return classes;
 	}
 
-	private async getNamesAndSize() {
-		const uris = await this.getFiles();
-		const fileNames : ClassType[] = [];
-		for (const uri of uris)
-		{
-			const file = await vscode.workspace.openTextDocument(uri);
-			const text = file.getText();
-			fileNames.concat(this.parseClassFile(text, uri));
-		}
-		return fileNames;
-	}
+	//gets all the classes and then sets all the needed vars for classmapview
+	//sends the classtype data to the main.js
+	//
+	public async showClassInfo() {
+		let startTimeGet = performance.now();
+		const content = await this.getClasses();//need to set height and width based of a scale 
+		let endTimeGet = performance.now();
+		console.log("Time taken for getClasses: " + (endTimeGet - startTimeGet));
 
+		this.setSize(content);
+		let startTimeCreateForest = performance.now();
+		const forest = new ClassForest(content);
+		let startTimeSortChildren = performance.now();
+		//forest.sortIfChildren();
+		forest.sortTreesByTotalChildren();
+		let startTimeSetCoords = performance.now();
+		forest.setCoords();
+		let endTimeCreateForest = performance.now();
 
-	public async showClassInfo(){
-		const content = await this.getNamesAndSize();
+		console.log("Time taken for forest creation: " + (startTimeSortChildren - startTimeCreateForest) + " : " 
+					+ (startTimeSetCoords - startTimeSortChildren) + " : " + (endTimeCreateForest - startTimeSetCoords));
+
 		const jsonText = JSON.stringify(content);
 		if (this._view) {
 			this._view.webview.postMessage({ type: 'showClassInfo', content: jsonText });
 		}
 	}
 
-	//dont need this cus will be done by button in ui instead of command
-	public async showNames() {
-		if (this._view) {
-			this._view.webview.postMessage({ type: 'showNames', content: await this.getNames() });
-		}
-	}
-	//dont need this ||
-	public async showNumber() {
-		if (this._view) {
-			this._view.webview.postMessage({ type: 'showNumber', content: [ await this.getNumberOfFiles()] });
-		}
-	}
+	//
 	private _getHtmlForWebview(webview: vscode.Webview) {
 		// Get the local path to main script run in the webview, then convert it to a uri we can use in the webview.
 		const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'main.js'));
@@ -299,7 +166,6 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 
 		// Use a nonce to only allow a specific script to be run.
 		const nonce = getNonce();
-
 		return `<!DOCTYPE html>
 			<html lang="en">
 			<head>
@@ -320,12 +186,12 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 				<title>Class Map</title>
 			</head>
 			<body>
-				<button class="show-names">Show class names</button>
-				<button class="show-number">Show number of classes</button>
 				<button class="show-class-info">Show classes and their sizes</button>
-				<svg class="svg1" width="0" height="0">
-				</svg>
-
+				<div class="svgDiv" style="border:3px solid green;width:100px;height:100px;overflow:scroll;">
+					<svg class="svg1" width="0" height="0">
+					</svg>
+				</div>
+				
 				<ul class="class-list">
 				</ul>
 				<script nonce="${nonce}" src="${scriptUri}"></script>
@@ -333,9 +199,9 @@ class ClassViewProvider implements vscode.WebviewViewProvider{
 			</html>`;
 	}
 }
-export function deactivate() {}
+export function deactivate() { }
 
-
+//This comes with vscode webview extensions and is published by microsoft under the MIT licence
 function getNonce() {
 	let text = '';
 	const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
