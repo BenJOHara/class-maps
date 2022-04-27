@@ -73,7 +73,7 @@ export class ClassForest{
             if (i !== 0)
             {
                 //prev tress x + the other half of its hiddenwidth to find where it ends at its widest point + buffer
-                tree.setCoords(this.trees[i - 1].root.c.x + this.trees[i - 1].root.c.hiddenWidth * 0.5 + buffer);
+                tree.setCoords(this.trees[i - 1].root.c.getX() + this.trees[i - 1].root.c.hiddenWidth * 0.5 + buffer);
             }
             else {
                 //first tree so starts at 0

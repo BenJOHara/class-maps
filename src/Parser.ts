@@ -11,7 +11,7 @@ export class Parser{
         this.parse();
     }
 
-    public getClasses()
+    public getClassData()
     {
         return this.classes;
     }

@@ -61,7 +61,9 @@ export class ClassNode{
 
     public setCoords(x:number, y:number)
     {
-        this.c.x = x;
-        this.c.y = y;
+        this.c.setX(x);
+        this.c.setY(y);
+        //this.c.x = x;
+        //this.c.y = y;
     }
 }

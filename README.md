@@ -11,13 +11,9 @@ If you click on a class rectangle it takes you to that file.
 ## Requirements
 vscode version > 1.65.0
 
-## Extension Settings
-
-
 ## Known Issues
 
 Class size maybe change by 1 or 2 lines every refresh : NOT URGENT
-If two classes have the same name but are in different places they will cause unknown errors
 
 ## Release Notes
 This version clears testing features.

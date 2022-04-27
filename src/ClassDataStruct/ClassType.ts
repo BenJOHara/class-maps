@@ -14,6 +14,7 @@ export class ClassType{
 	external:boolean = false;
 
 	//for CSS
+
 	x:number = 0;
 	y:number = 0;
 
@@ -21,4 +22,24 @@ export class ClassType{
 	width:number = 0;
 
 	scale:number = 2;
+
+	public setX(x : number)
+	{
+		this.x = x;
+	}
+
+	public getX()
+	{
+		return this.x;
+	}
+
+	public setY(y : number)
+	{
+		this.y = y;
+	}
+	public getY()
+	{
+		return this.y;
+	}
+
 }

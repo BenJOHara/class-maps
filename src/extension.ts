@@ -111,7 +111,7 @@ class ClassViewProvider implements vscode.WebviewViewProvider {
 		const tokensAll: Tokens[] = tokenizer.getTokens();
 
 		const parser = new Parser(tokensAll);
-		const classes : ClassType [] = parser.getClasses();
+		const classes : ClassType [] = parser.getClassData();
 		return classes;
 	}
 	

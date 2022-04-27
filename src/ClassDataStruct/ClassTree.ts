@@ -59,7 +59,8 @@ export class ClassTree {
         this.setY(this.root, 0);//start at y = 0
         this.setHiddenWidth(this.root);
         if (this.root.parent.length === 0){
-            this.root.c.x = this.root.c.hiddenWidth / 2 + leftHW;
+            //this.root.c.x 
+            this.root.c.setX( this.root.c.hiddenWidth / 2 + leftHW);
         }
         return this.setX(this.root);
     }
@@ -69,7 +70,8 @@ export class ClassTree {
     private setY(root: ClassNode, depth: number) {
         const buffer : number = 10;
         let p = root;
-        p.c.y = depth;
+        //p.c.y = depth;
+        p.c.setY(depth);
         depth += p.c.height + buffer;
         for (let i = 0; i < p.children.length; i++) {
             this.setY(p.children[i], depth);
@@ -113,7 +115,8 @@ export class ClassTree {
     //returns the next place where a node can start
     private findX(node : ClassNode, lastX : number)
     {
-        node.c.x = lastX + node.c.hiddenWidth * 0.5;//set x as the middle of your hidden width
+        //node.c.x = lastX + node.c.hiddenWidth * 0.5;//set x as the middle of your hidden width
+        node.c.setX(lastX + node.c.hiddenWidth * 0.5);
         return lastX + node.c.hiddenWidth; //return the edge of your hidden width for the next child
     }
 
@@ -127,7 +130,7 @@ export class ClassTree {
     //For every child call setX to set their childrens x
     private setX(root: ClassNode) {
         let p : ClassNode = root;
-        let x : number = p.c.x - p.c.hiddenWidth * 0.5;
+        let x : number = p.c.getX() - p.c.hiddenWidth * 0.5;
 
         if (p.children.length !== 0)
         {
