@@ -1,40 +1,64 @@
 body {
-	background-color: transparent;
+    background-color: transparent;
+    padding: 8px;
 }
 
-.color-list {
-	list-style: none;
-	padding: 0;
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
 }
 
-.color-entry {
-	width: 100%;
-	display: flex;
-	margin-bottom: 0.4em;
-	border: 1px solid var(--vscode-input-border);
+.refresh-hierarchy {
+    flex: 0 0 auto;
 }
 
-.color-preview {
-	width: 2em;
-	height: 2em;
+.status {
+    color: var(--vscode-descriptionForeground);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.color-preview:hover {
-	outline: inset white;
+.svg-container {
+    width: 100%;
+    max-height: calc(100vh - 56px);
+    overflow: auto;
+    border: 1px solid var(--vscode-panel-border);
 }
 
-.color-input {
-	display: block;
-	flex: 1;
-	width: 100%;
-	color: var(--vscode-input-foreground);
-	background-color: var(--vscode-input-background);
-	border: none;
-	padding: 0 0.6em;
+.systemc-map {
+    display: block;
 }
 
-.add-color-button {
-	display: block;
-	border: none;
-	margin: 0 auto;
+.hierarchy-edge {
+    stroke: var(--vscode-descriptionForeground);
+    stroke-width: 1;
+}
+
+.systemc-node rect {
+    fill: var(--vscode-editor-background);
+    stroke: var(--vscode-editor-foreground);
+    stroke-width: 1;
+}
+
+.systemc-node:hover rect {
+    fill: var(--vscode-list-hoverBackground);
+}
+
+.node-name,
+.node-kind {
+    pointer-events: none;
+    font-family: var(--vscode-editor-font-family);
+}
+
+.node-name {
+    fill: var(--vscode-editor-foreground);
+    font-size: 12px;
+}
+
+.node-kind {
+    fill: var(--vscode-descriptionForeground);
+    font-size: 10px;
 }
