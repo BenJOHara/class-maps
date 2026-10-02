@@ -1,212 +1,156 @@
-import { performance } from 'perf_hooks';
-import * as vscode from 'vscode';
-import { ClassForest } from './ClassDataStruct/ClassForest';
-import { ClassType } from './ClassDataStruct/ClassType';
-import { Parser } from './Parser';
-import { Tokenizer } from './TokensFiles/Tokenizer';
-import { Tokens } from './TokensFiles/Tokens';
+import * as vscode from "vscode";
+import { HierarchyForest } from "./Hierarchy/HierarchyForest";
+import { SystemCGraph } from "./SystemC/SystemCGraph";
+import { SystemCJsonLoader } from "./SystemC/SystemCJsonLoader";
 
+export function activate(context: vscode.ExtensionContext): void {
+    const provider = new SystemCViewProvider(context.extensionUri);
 
-//registers webview
-export function activate(context: vscode.ExtensionContext) {
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(SystemCViewProvider.viewType, provider)
+    );
 
-	console.log('class-maps is now active');
-
-	const provider = new ClassViewProvider(context.extensionUri);
-
-	context.subscriptions.push(
-		vscode.window.registerWebviewViewProvider(ClassViewProvider.viewType, provider));
-
-	/*context.subscriptions.push(
-		vscode.commands.registerCommand('class-maps.show-class-info', () => {
-
-		}));*/
-	console.log("end activate Start");
+    context.subscriptions.push(
+        vscode.commands.registerCommand("class-maps.refresh-systemc-hierarchy", async () => {
+            await provider.showSystemCInfo();
+        })
+    );
 }
 
-//sets webview settings
-//recieves message from main.js
-class ClassViewProvider implements vscode.WebviewViewProvider {
+class SystemCViewProvider implements vscode.WebviewViewProvider {
+    public static readonly viewType = "class-maps.map-view";
 
-	public static readonly viewType = 'class-maps.map-view';
+    private view?: vscode.WebviewView;
 
-	private _view?: vscode.WebviewView;
+    constructor(private readonly extensionUri: vscode.Uri) {
+    }
 
-	constructor(
-		private readonly _extensionUri: vscode.Uri,
-	) { }
+    public resolveWebviewView(
+        webviewView: vscode.WebviewView,
+        _context: vscode.WebviewViewResolveContext,
+        _token: vscode.CancellationToken
+    ): void {
+        this.view = webviewView;
 
-	public resolveWebviewView(
-		webviewView: vscode.WebviewView,
-		context: vscode.WebviewViewResolveContext,
-		_token: vscode.CancellationToken,
-	) {
-		this._view = webviewView;
+        webviewView.webview.options = {
+            enableScripts: true
+        };
 
-		webviewView.webview.options = {
-			// Allow scripts in the webview
-			enableScripts: true,
-		};
+        webviewView.webview.html = this.getHtmlForWebview(webviewView.webview);
 
-		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+        webviewView.webview.onDidReceiveMessage(async data => {
+            if (data.type === "getSystemCInfo") {
+                await this.showSystemCInfo();
+            }
+        });
 
-		webviewView.webview.onDidReceiveMessage(async data => {
-			switch (data.type) {
-				case 'getClassInfo':
-					{
-						await this.showClassInfo();
-						break;
-					}
-				case 'openWindow':
-					{
-						const page: vscode.TextDocument = await vscode.workspace.openTextDocument(data.content.fsPath);
-						await vscode.window.showTextDocument(page);
-					}
-			}
-		});
-	}
+        void this.showSystemCInfo();
+    }
 
-	//gets all files from workspace
-	private async getFiles() {
-		const files: vscode.Uri[] = await vscode.workspace.findFiles('**/*.java');
-		return files;
-	}
+    public async showSystemCInfo(): Promise<void> {
+        try {
+            const graph = await this.loadGraph();
+            const forest = new HierarchyForest(graph.nodes);
+            forest.layout();
 
+            if (this.view !== undefined) {
+                await this.view.webview.postMessage({
+                    type: "showSystemCInfo",
+                    content: graph
+                });
+            }
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
 
-	private async openFiles(uris : vscode.Uri[])
-	{
-		const files: vscode.TextDocument[] = [];
-		for (const uri of uris) {
-			const file = await vscode.workspace.openTextDocument(uri);
-			files.push(file);
-		}
-		return files;
-	}
+            if (this.view !== undefined) {
+                await this.view.webview.postMessage({
+                    type: "showSystemCError",
+                    content: message
+                });
+            }
 
-	//checks if a name exists in an array of classtypes
-	private doesParentExist(classes: ClassType[], parent: string) {
-		for (let i = 0; i < classes.length; i++) {
-			if (classes[i].name === parent) {
-				return true;
-			}
-		}
-		return false;
-	}
-	//gets all classes as ClassTypes in the workspace
-	//
-	private async getClasses() {
-		let timeAtStart = performance.now();
-		const basicType: string[] = ["boolean", "byte", "char", "double", "float", "int", "long", "short"];
-		
-		let getFilesStart = performance.now();
+            void vscode.window.showErrorMessage("SystemC Map: " + message);
+        }
+    }
 
-		const uris : vscode.Uri[]= await this.getFiles();
+    private async loadGraph(): Promise<SystemCGraph> {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (workspaceFolders === undefined || workspaceFolders.length === 0) {
+            throw new Error("Open a workspace containing a SystemC map");
+        }
 
-		const files: vscode.TextDocument[] = await this.openFiles(uris);
+        const configuration = vscode.workspace.getConfiguration("class-maps");
+        const configuredPath = configuration.get<string>("systemcMapPath", "systemc-map.json");
+        const pathParts = configuredPath.split(/[\\/]+/).filter(part => part.length > 0);
 
-		let getFilesEnd = performance.now();
+        if (pathParts.length === 0) {
+            throw new Error("class-maps.systemcMapPath must not be empty");
+        }
 
-		let tokenizerStart = performance.now();
-		const tokenizer: Tokenizer = new Tokenizer(files);
-		const tokensAll: Tokens[] = tokenizer.getTokens();
+        const mapUri = vscode.Uri.joinPath(workspaceFolders[0].uri, ...pathParts);
 
-		const parser = new Parser(tokensAll);
-		const classes : ClassType [] = parser.getClassData();
-		return classes;
-	}
-	
+        let bytes: Uint8Array;
+        try {
+            bytes = await vscode.workspace.fs.readFile(mapUri);
+        } catch {
+            throw new Error("Unable to read " + mapUri.fsPath);
+        }
 
-	//sets the height and width of all classes
-	private setSize(classes: ClassType[]) {
-		const maxWidth = 25;
-		for (let i: number = 0; i < classes.length; i++) {
-			classes[i].height = classes[i].nLines * classes[i].scale;
-			classes[i].width = maxWidth;//default can change this in some ways idk yet
-		}
-		return classes;
-	}
+        return SystemCJsonLoader.parse(Buffer.from(bytes).toString("utf8"));
+    }
 
-	//gets all the classes and then sets all the needed vars for classmapview
-	//sends the classtype data to the main.js
-	//
-	public async showClassInfo() {
-		let startTimeGet = performance.now();
-		const content = await this.getClasses();//need to set height and width based of a scale 
-		let endTimeGet = performance.now();
-		console.log("Time taken for getClasses: " + (endTimeGet - startTimeGet));
+    private getHtmlForWebview(webview: vscode.Webview): string {
+        const scriptUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(this.extensionUri, "media", "main.js")
+        );
+        const styleResetUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(this.extensionUri, "media", "reset.css")
+        );
+        const styleVSCodeUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(this.extensionUri, "media", "vscode.css")
+        );
+        const styleMainUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(this.extensionUri, "media", "main.css")
+        );
+        const nonce = getNonce();
 
-		this.setSize(content);
-		let startTimeCreateForest = performance.now();
-		const forest = new ClassForest(content);
-		let startTimeSortChildren = performance.now();
-		//forest.sortIfChildren();
-		forest.sortTreesByTotalChildren();
-		let startTimeSetCoords = performance.now();
-		forest.setCoords();
-		let endTimeCreateForest = performance.now();
-
-		console.log("Time taken for forest creation: " + (startTimeSortChildren - startTimeCreateForest) + " : " 
-					+ (startTimeSetCoords - startTimeSortChildren) + " : " + (endTimeCreateForest - startTimeSetCoords));
-
-		const jsonText = JSON.stringify(content);
-		if (this._view) {
-			this._view.webview.postMessage({ type: 'showClassInfo', content: jsonText });
-		}
-	}
-
-	//
-	private _getHtmlForWebview(webview: vscode.Webview) {
-		// Get the local path to main script run in the webview, then convert it to a uri we can use in the webview.
-		const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'main.js'));
-
-		// Do the same for the stylesheet.
-		const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css'));
-		const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'vscode.css'));
-		const styleMainUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'main.css'));
-
-		// Use a nonce to only allow a specific script to be run.
-		const nonce = getNonce();
-		return `<!DOCTYPE html>
-			<html lang="en">
-			<head>
-				<meta charset="UTF-8">
-
-				<!--
-					Use a content security policy to only allow loading images from https or from our extension directory,
-					and only allow scripts that have a specific nonce.
-				-->
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
-
-				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-				<link href="${styleResetUri}" rel="stylesheet">
-				<link href="${styleVSCodeUri}" rel="stylesheet">
-				<link href="${styleMainUri}" rel="stylesheet">
-				
-				<title>Class Map</title>
-			</head>
-			<body>
-				<button class="show-class-info">Show classes and their sizes</button>
-				<div class="svgDiv" style="border:3px solid green;width:100px;height:100px;overflow:scroll;">
-					<svg class="svg1" width="0" height="0">
-					</svg>
-				</div>
-				
-				<ul class="class-list">
-				</ul>
-				<script nonce="${nonce}" src="${scriptUri}"></script>
-			</body>
-			</html>`;
-	}
+        return [
+            "<!DOCTYPE html>",
+            '<html lang="en">',
+            "<head>",
+            '    <meta charset="UTF-8">',
+            '    <meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src ' + webview.cspSource + '; script-src \'nonce-' + nonce + '\';">',
+            '    <meta name="viewport" content="width=device-width, initial-scale=1.0">',
+            '    <link href="' + styleResetUri + '" rel="stylesheet">',
+            '    <link href="' + styleVSCodeUri + '" rel="stylesheet">',
+            '    <link href="' + styleMainUri + '" rel="stylesheet">',
+            "    <title>SystemC Map</title>",
+            "</head>",
+            "<body>",
+            '    <div class="toolbar">',
+            '        <button class="refresh-hierarchy">Refresh hierarchy</button>',
+            '        <span class="status" role="status"></span>',
+            "    </div>",
+            '    <div class="svg-container">',
+            '        <svg class="systemc-map" width="0" height="0"></svg>',
+            "    </div>",
+            '    <script nonce="' + nonce + '" src="' + scriptUri + '"></script>',
+            "</body>",
+            "</html>"
+        ].join("\n");
+    }
 }
-export function deactivate() { }
 
-//This comes with vscode webview extensions and is published by microsoft under the MIT licence
-function getNonce() {
-	let text = '';
-	const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-	for (let i = 0; i < 32; i++) {
-		text += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-	return text;
+export function deactivate(): void {
+}
+
+function getNonce(): string {
+    let text = "";
+    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for (let index = 0; index < 32; index++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+
+    return text;
 }
