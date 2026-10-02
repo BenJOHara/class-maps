@@ -1,0 +1,35 @@
+{
+    "nodes": [
+        {
+            "id": "top",
+            "name": "top",
+            "kind": "sc_module",
+            "parentId": null
+        },
+        {
+            "id": "top.module_a",
+            "name": "module_a",
+            "kind": "sc_module",
+            "parentId": "top"
+        },
+        {
+            "id": "top.module_b",
+            "name": "module_b",
+            "kind": "sc_module",
+            "parentId": "top"
+        },
+        {
+            "id": "top.module_a.worker",
+            "name": "worker",
+            "kind": "sc_module",
+            "parentId": "top.module_a"
+        },
+        {
+            "id": "top.module_b.worker",
+            "name": "worker",
+            "kind": "sc_module",
+            "parentId": "top.module_b"
+        }
+    ],
+    "edges": []
+}
